@@ -1,13 +1,10 @@
 from django import forms
 try:
-    try:
-        from django.contrib.contenttypes.models import ContentType
-    except Exception:
-        ContentType = None
-# TODO: Lazy-import ContentType to avoid importing ORM at module import time
-
+    from django.contrib.contenttypes.models import ContentType
 except Exception:
     ContentType = None
+# TODO: Lazy-import ContentType to avoid importing ORM at module import time
+
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.utils.translation import gettext_lazy as _
 

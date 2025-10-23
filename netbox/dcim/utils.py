@@ -1,13 +1,10 @@
 from django.apps import apps
 try:
-try:
     from django.contrib.contenttypes.models import ContentType
 except Exception:
     ContentType = None
 # TODO: Lazy-import ContentType to avoid importing ORM at module import time
-except Exception:
-    ContentType = None
-# TODO: Lazy-import ContentType to avoid importing ORM at module import time
+
 from django.db import router, transaction
 
 

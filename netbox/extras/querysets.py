@@ -1,10 +1,6 @@
 from django.db.models import OuterRef, Subquery, Q
 try:
-    try:
-        from django.contrib.contenttypes.models import ContentType
-    except Exception:
-        ContentType = None
-    # TODO: Lazy-import ContentType to avoid importing ORM at module import time
+    from django.contrib.contenttypes.models import ContentType
 except Exception:
     ContentType = None
 

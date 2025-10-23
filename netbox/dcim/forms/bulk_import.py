@@ -1,14 +1,11 @@
 from django import forms
 # Lazy import ContentType to avoid import-time ORM access
 try:
-    try:
-        from django.contrib.contenttypes.models import ContentType
-    except Exception:
-        ContentType = None
-# TODO: Use apps.get_model('contenttypes', 'ContentType') at runtime if ContentType is None
-
+    from django.contrib.contenttypes.models import ContentType
 except Exception:
     ContentType = None
+# TODO: Use apps.get_model('contenttypes', 'ContentType') at runtime if ContentType is None
+
 from utilities.forms.fields.array import SimpleArrayField
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.safestring import mark_safe
