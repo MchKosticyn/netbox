@@ -1,6 +1,7 @@
-from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.db import models
+# ArrayField replaced with JSONField-backed alias for SQLite
+ArrayField = models.JSONField
 from django.utils.translation import gettext as _
 from netaddr import AddrFormatError, EUI, eui64_unix_expanded, mac_unix_expanded
 

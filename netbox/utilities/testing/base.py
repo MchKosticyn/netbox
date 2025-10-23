@@ -3,9 +3,11 @@ from contextlib import contextmanager
 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.fields import ArrayField, RangeField
 from django.core.exceptions import FieldDoesNotExist
 from django.db import transaction
+# Use JSONField aliases in place of Postgres-specific Array/Range fields
+ArrayField = list
+RangeField = dict
 from django.db.models import ManyToManyField, ManyToManyRel, JSONField
 from django.forms.models import model_to_dict
 from django.test import Client, TestCase as _TestCase

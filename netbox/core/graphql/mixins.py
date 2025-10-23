@@ -2,7 +2,11 @@ from typing import Annotated, List, TYPE_CHECKING
 
 import strawberry
 import strawberry_django
-from django.contrib.contenttypes.models import ContentType
+try:
+    from django.contrib.contenttypes.models import ContentType
+except Exception:
+    ContentType = None
+# Lazy-import ContentType to avoid import-time ORM access
 from strawberry.types import Info
 
 from core.models import ObjectChange

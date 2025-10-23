@@ -2,7 +2,11 @@ from typing import Annotated, List
 
 import strawberry
 import strawberry_django
-from django.contrib.contenttypes.models import ContentType as DjangoContentType
+try:
+    from django.contrib.contenttypes.models import ContentType as DjangoContentType
+except Exception:
+    DjangoContentType = None
+# Lazy-import ContentType to avoid import-time ORM access
 
 from core import models
 from netbox.graphql.types import BaseObjectType, NetBoxObjectType

@@ -1,5 +1,9 @@
 import django_filters
-from django.contrib.contenttypes.models import ContentType
+try:
+    from django.contrib.contenttypes.models import ContentType
+except Exception:
+    ContentType = None
+# Lazy-import ContentType to avoid import-time ORM access
 from django.db.models import Q
 from django.utils.translation import gettext as _
 

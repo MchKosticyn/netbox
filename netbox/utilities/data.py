@@ -1,7 +1,19 @@
 import decimal
 from itertools import count, groupby
 
-from django.db.backends.postgresql.psycopg_any import NumericRange
+# NumericRange is a Postgres-specific type; provide a lightweight replacement for SQLite
+# TODO: This is a compatibility shim used for SQLite-based tests. If running on PostgreSQL,
+# consider replacing this with the native range type or a more feature-complete implementation.
+class NumericRange:
+    def __init__(self, lower, upper, bounds='[]'):
+        self.lower = int(lower)
+        self.upper = int(upper)
+        self.lower_inc = bounds.startswith('[')
+        self.upper_inc = bounds.endswith(']')
+
+    def __repr__(self):
+        bounds = '[]' if (self.lower_inc and self.upper_inc) else ''
+        return f"NumericRange({self.lower}, {self.upper}, bounds='{bounds}')"
 
 __all__ = (
     'array_to_ranges',

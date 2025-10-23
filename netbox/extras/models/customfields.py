@@ -6,7 +6,9 @@ from datetime import datetime, date
 import django_filters
 from django import forms
 from django.conf import settings
-from django.contrib.postgres.fields import ArrayField
+from django.db import models
+# ArrayField not available in SQLite; use JSONField alias
+ArrayField = models.JSONField
 from django.core.validators import RegexValidator, ValidationError
 from django.db import models
 from django.db.models import F, Func, Value

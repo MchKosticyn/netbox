@@ -1,5 +1,3 @@
-import django.contrib.postgres.fields
-import django.contrib.postgres.indexes
 import django.db.models.deletion
 from django.db import migrations, models
 
@@ -39,11 +37,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     'features',
-                    django.contrib.postgres.fields.ArrayField(
-                        base_field=models.CharField(max_length=50),
-                        default=list,
-                        size=None
-                    )
+                    models.JSONField(default=list)
                 ),
             ],
             options={
@@ -51,9 +45,9 @@ class Migration(migrations.Migration):
                 'verbose_name_plural': 'object types',
                 'ordering': ('app_label', 'model'),
                 'indexes': [
-                    django.contrib.postgres.indexes.GinIndex(
+                    models.Index(
                         fields=['features'],
-                        name='core_object_feature_aec4de_gin'
+                        name='core_object_feature_idx'
                     ),
                 ]
             },

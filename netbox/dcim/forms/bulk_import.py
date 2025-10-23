@@ -1,6 +1,15 @@
 from django import forms
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.forms.array import SimpleArrayField
+# Lazy import ContentType to avoid import-time ORM access
+try:
+    try:
+        from django.contrib.contenttypes.models import ContentType
+    except Exception:
+        ContentType = None
+# TODO: Use apps.get_model('contenttypes', 'ContentType') at runtime if ContentType is None
+
+except Exception:
+    ContentType = None
+from utilities.forms.fields.array import SimpleArrayField
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _

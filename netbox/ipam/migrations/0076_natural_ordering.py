@@ -11,21 +11,21 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='asnrange',
             name='name',
-            field=models.CharField(db_collation='natural_sort', max_length=100, unique=True),
+            field=models.CharField(max_length=100, unique=True),
         ),
         migrations.AlterField(
             model_name='routetarget',
             name='name',
-            field=models.CharField(db_collation='natural_sort', max_length=21, unique=True),
+            field=models.CharField(max_length=21, unique=True),
         ),
         migrations.AlterField(
             model_name='vlangroup',
             name='name',
-            field=models.CharField(db_collation='natural_sort', max_length=100),
+            field=models.CharField(max_length=100),
         ),
         migrations.AlterField(
             model_name='vrf',
             name='name',
-            field=models.CharField(db_collation='natural_sort', max_length=100),
+            field=models.CharField(max_length=100),
         ),
     ]

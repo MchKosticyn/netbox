@@ -1,6 +1,7 @@
 import datetime
 
 from django.contrib.contenttypes.models import ContentType
+# Tests require ContentType available for proper behavior
 from django.test import override_settings
 from django.urls import reverse
 from netaddr import IPNetwork

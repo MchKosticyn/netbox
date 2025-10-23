@@ -1,8 +1,20 @@
-from django.contrib.postgres.aggregates import JSONBAgg
 from django.db.models import OuterRef, Subquery, Q
+try:
+    try:
+        from django.contrib.contenttypes.models import ContentType
+    except Exception:
+        ContentType = None
+    # TODO: Lazy-import ContentType to avoid importing ORM at module import time
+except Exception:
+    ContentType = None
 
 from extras.models.tags import TaggedItem
 from utilities.query_functions import EmptyGroupByJSONBAgg
+try:
+    from django.contrib.contenttypes.models import ContentType
+except Exception:
+    ContentType = None
+# TODO: Lazy-import ContentType to avoid importing ORM at module import time
 from utilities.querysets import RestrictedQuerySet
 
 __all__ = (
@@ -65,7 +77,7 @@ class ConfigContextQuerySet(RestrictedQuerySet):
 
         if aggregate_data:
             return queryset.aggregate(
-                config_context_data=JSONBAgg('data', ordering=['weight', 'name'])
+                config_context_data=EmptyGroupByJSONBAgg('data', ordering=['weight', 'name'])
             )['config_context_data']
 
         return queryset

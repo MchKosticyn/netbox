@@ -1,7 +1,7 @@
 import re
 
 from django import forms
-from django.contrib.postgres.forms import SimpleArrayField
+from utilities.forms.fields.array import SimpleArrayField
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import gettext_lazy as _
 

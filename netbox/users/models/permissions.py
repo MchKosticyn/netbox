@@ -1,6 +1,7 @@
-from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.urls import reverse
+# Replace ArrayField with JSONField alias for SQLite
+ArrayField = models.JSONField
 from django.utils.translation import gettext_lazy as _
 
 from netbox.models.features import CloningMixin

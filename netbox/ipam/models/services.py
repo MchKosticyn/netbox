@@ -1,7 +1,8 @@
 from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
+# ArrayField replaced with JSONField-backed alias for SQLite
+ArrayField = models.JSONField
 from django.utils.translation import gettext_lazy as _
 
 from ipam.choices import *

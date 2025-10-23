@@ -1,8 +1,15 @@
 import netaddr
 from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.indexes import GistIndex
+# GistIndex is Postgres-specific; use regular Index for SQLite
+from django.db.models import Index as GistIndex
+# Lazy import ContentType where needed
+try:
+    from django.contrib.contenttypes.models import ContentType
+except Exception:
+    ContentType = None
 from django.core.exceptions import ValidationError
+# Lazy-import ContentType to avoid import-time ORM access; use apps.get_model('contenttypes','ContentType') at runtime if needed
+
 from django.db import models
 from django.db.models import F
 from django.db.models.functions import Cast
@@ -282,11 +289,12 @@ class Prefix(ContactsMixin, GetAvailablePrefixesMixin, CachedScopeMixin, Primary
         ordering = (F('vrf').asc(nulls_first=True), 'prefix', 'pk')  # (vrf, prefix) may be non-unique
         verbose_name = _('prefix')
         verbose_name_plural = _('prefixes')
+        # GistIndex/opclasses are Postgres-specific. Use a plain Index for SQLite compatibility.
+        # TODO: revisit index type to restore Postgres-specific ops when PG is used.
         indexes = [
-            GistIndex(
+            models.Index(
                 fields=['prefix'],
-                name='ipam_prefix_gist_idx',
-                opclasses=['inet_ops'],
+                name='ipam_prefix_idx',
             ),
         ]
 

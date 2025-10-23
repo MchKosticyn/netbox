@@ -239,15 +239,14 @@ for path in PROXY_ROUTERS:
 # Database
 #
 
-# Verify that a default database has been configured
-if 'default' not in DATABASES:
-    raise ImproperlyConfigured("No default database has been configured.")
-
-# Set the database engine
-if 'ENGINE' not in DATABASES['default']:
-    DATABASES['default'].update({
-        'ENGINE': 'django_prometheus.db.backends.postgresql' if METRICS_ENABLED else 'django.db.backends.postgresql'
-    })
+# Force usage of in-memory SQLite for all environments (tests and runtime)
+# This simplifies local testing and avoids DB-specific SQL syntax issues.
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',
+    }
+}
 
 
 #

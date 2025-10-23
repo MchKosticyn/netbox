@@ -2,6 +2,7 @@ import tempfile
 from pathlib import Path
 
 from django.contrib.contenttypes.models import ContentType
+# Tests require ContentType to be importable
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.forms import ValidationError
 from django.test import tag, TestCase

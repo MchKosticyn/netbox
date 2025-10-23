@@ -2,7 +2,7 @@ import json
 import re
 
 from django import forms
-from django.contrib.postgres.forms import SimpleArrayField
+from utilities.forms.fields.array import SimpleArrayField
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 

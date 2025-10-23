@@ -1,5 +1,10 @@
 from django import forms
-from django.contrib.contenttypes.models import ContentType
+try:
+    from django.contrib.contenttypes.models import ContentType
+except Exception:
+    ContentType = None
+# TODO: Use apps.get_model('contenttypes', 'ContentType') at runtime if ContentType is None
+
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import gettext_lazy as _
 

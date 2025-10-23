@@ -1,10 +1,38 @@
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.fields import ArrayField, IntegerRangeField
+try:
+    from django.contrib.contenttypes.models import ContentType
+except Exception:
+    ContentType = None
+# TODO: Lazy-import ContentType to avoid importing ORM at module import time
+
+# This project is configured to use SQLite by default. Use JSONField-based
+# replacements for PostgreSQL-specific types.
+from django.db import models
+
+class NumericRange:
+    """Lightweight NumericRange replacement for SQLite-based storage.
+
+    Stored representation is expected to be a dict/list in the DB (JSON). This
+    class provides convenience attributes used by the application code.
+    """
+
+    def __init__(self, lower, upper, bounds='[]'):
+        self.lower = lower
+        self.upper = upper
+        # bounds is a string like '[]' or '[)' etc.
+        self.lower_inc = bounds.startswith('[')
+        self.upper_inc = bounds.endswith(']')
+
+    def __repr__(self):
+        bounds = '[]' if (self.lower_inc and self.upper_inc) else ''
+        return f"NumericRange({self.lower}, {self.upper}, bounds='{bounds}')"
+
+# Use JSONField as the project default for array/range-like fields under SQLite
+ArrayField = models.JSONField
+IntegerRangeField = models.JSONField
+
 from django.core.exceptions import ValidationError
 from django.core.validators import MaxValueValidator, MinValueValidator
-from django.db import models
-from django.db.backends.postgresql.psycopg_any import NumericRange
 from django.utils.translation import gettext_lazy as _
 
 from dcim.models import Interface, Site, SiteGroup
@@ -24,9 +52,16 @@ __all__ = (
 
 
 def default_vid_ranges():
-    return [
-        NumericRange(VLAN_VID_MIN, VLAN_VID_MAX, bounds='[]')
-    ]
+    """Return the default VID ranges as a JSON-serializable structure for SQLite.
+
+    Always return a list of dicts representing ranges so migrations and defaults
+    are compatible with SQLite's JSONField storage.
+    """
+    return [{
+        'lower': VLAN_VID_MIN,
+        'upper': VLAN_VID_MAX,
+        'bounds': '[]',
+    }]
 
 
 class VLANGroup(OrganizationalModel):

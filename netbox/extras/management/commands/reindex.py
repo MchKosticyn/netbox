@@ -1,4 +1,8 @@
-from django.contrib.contenttypes.models import ContentType
+try:
+    from django.contrib.contenttypes.models import ContentType
+except Exception:
+    ContentType = None
+# Lazy-import ContentType to avoid import-time ORM access
 from django.core.management.base import BaseCommand, CommandError
 from django.utils.translation import gettext as _
 

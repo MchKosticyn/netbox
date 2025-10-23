@@ -23,17 +23,17 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='virtualdisk',
             name='name',
-            field=models.CharField(db_collation='natural_sort', max_length=64),
+            field=models.CharField(max_length=64),
         ),
         migrations.AlterField(
             model_name='virtualmachine',
             name='name',
-            field=models.CharField(db_collation='natural_sort', max_length=64),
+            field=models.CharField(max_length=64),
         ),
         migrations.AlterField(
             model_name='cluster',
             name='name',
-            field=models.CharField(db_collation='natural_sort', max_length=100),
+            field=models.CharField(max_length=100),
         ),
         migrations.RemoveField(
             model_name='virtualdisk',

@@ -1,5 +1,15 @@
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.backends.postgresql.psycopg_any import NumericRange
+try:
+    from utilities.data import NumericRange
+except Exception:
+    # Fallback shim if utilities.data isn't importable during migrations/tests
+    class NumericRange:
+        def __init__(self, lower, upper, bounds='[]'):
+            self.lower = int(lower)
+            self.upper = int(upper)
+            self.lower_inc = bounds.startswith('[')
+            self.upper_inc = bounds.endswith(']')
+# TODO: Replace with the real utilities.data.NumericRange when available
 from django.utils.translation import gettext as _
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field

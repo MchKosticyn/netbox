@@ -1,4 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
+# Tests require ContentType to be importable
 from django.core.exceptions import ObjectDoesNotExist
 from django.test import TestCase
 

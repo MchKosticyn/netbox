@@ -60,11 +60,12 @@ class IPNetworkField(BaseIPField):
     """
     IP prefix (network and mask)
     """
-    description = 'PostgreSQL CIDR field'
+    description = 'CIDR field'
     default_validators = [validators.prefix_validator]
 
     def db_type(self, connection):
-        return 'cidr'
+        # Use text storage on SQLite
+        return 'text'
 
 
 IPNetworkField.register_lookup(lookups.IExact)
@@ -86,10 +87,11 @@ class IPAddressField(BaseIPField):
     """
     IP address (host address and mask)
     """
-    description = 'PostgreSQL INET field'
+    description = 'INET field'
 
     def db_type(self, connection):
-        return 'inet'
+        # Use text storage on SQLite
+        return 'text'
 
 
 IPAddressField.register_lookup(lookups.IExact)

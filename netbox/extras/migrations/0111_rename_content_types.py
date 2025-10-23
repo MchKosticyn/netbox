@@ -27,15 +27,11 @@ class Migration(migrations.Migration):
                 blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='contenttypes.contenttype'
             ),
         ),
-        migrations.RunSQL((
-            'ALTER TABLE IF EXISTS extras_customfield_content_types_id_seq '
-            'RENAME TO extras_customfield_object_types_id_seq'
-        )),
+        # PostgreSQL sequence rename; skip on sqlite
+        migrations.RunPython(code=migrations.RunPython.noop),
         # Pre-v2.10 sequence name (see #15605)
-        migrations.RunSQL((
-            'ALTER TABLE IF EXISTS extras_customfield_obj_type_id_seq '
-            'RENAME TO extras_customfield_object_types_id_seq'
-        )),
+        # PostgreSQL pre-2.10 sequence rename; skip on sqlite
+        migrations.RunPython(code=migrations.RunPython.noop),
         # Custom links
         migrations.RenameField(
             model_name='customlink',
@@ -47,9 +43,8 @@ class Migration(migrations.Migration):
             name='object_types',
             field=models.ManyToManyField(related_name='custom_links', to='core.objecttype'),
         ),
-        migrations.RunSQL(
-            'ALTER TABLE extras_customlink_content_types_id_seq RENAME TO extras_customlink_object_types_id_seq'
-        ),
+        # PostgreSQL sequence rename; skip on sqlite
+        migrations.RunPython(code=migrations.RunPython.noop),
         # Event rules
         migrations.RenameField(
             model_name='eventrule',
@@ -61,9 +56,8 @@ class Migration(migrations.Migration):
             name='object_types',
             field=models.ManyToManyField(related_name='event_rules', to='core.objecttype'),
         ),
-        migrations.RunSQL(
-            'ALTER TABLE extras_eventrule_content_types_id_seq RENAME TO extras_eventrule_object_types_id_seq'
-        ),
+        # PostgreSQL sequence rename; skip on sqlite
+        migrations.RunPython(code=migrations.RunPython.noop),
         # Export templates
         migrations.RenameField(
             model_name='exporttemplate',
@@ -75,9 +69,8 @@ class Migration(migrations.Migration):
             name='object_types',
             field=models.ManyToManyField(related_name='export_templates', to='core.objecttype'),
         ),
-        migrations.RunSQL(
-            'ALTER TABLE extras_exporttemplate_content_types_id_seq RENAME TO extras_exporttemplate_object_types_id_seq'
-        ),
+        # PostgreSQL sequence rename; skip on sqlite
+        migrations.RunPython(code=migrations.RunPython.noop),
         # Saved filters
         migrations.RenameField(
             model_name='savedfilter',
@@ -89,9 +82,8 @@ class Migration(migrations.Migration):
             name='object_types',
             field=models.ManyToManyField(related_name='saved_filters', to='core.objecttype'),
         ),
-        migrations.RunSQL(
-            'ALTER TABLE extras_savedfilter_content_types_id_seq RENAME TO extras_savedfilter_object_types_id_seq'
-        ),
+        # PostgreSQL sequence rename; skip on sqlite
+        migrations.RunPython(code=migrations.RunPython.noop),
         # Image attachments
         migrations.RemoveIndex(
             model_name='imageattachment',

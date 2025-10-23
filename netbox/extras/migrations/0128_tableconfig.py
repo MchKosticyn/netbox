@@ -1,4 +1,3 @@
-import django.contrib.postgres.fields
 import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
@@ -26,13 +25,11 @@ class Migration(migrations.Migration):
                 ('shared', models.BooleanField(default=True)),
                 (
                     'columns',
-                    django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=100), size=None),
+                    models.JSONField(default=list, serialize=False),
                 ),
                 (
                     'ordering',
-                    django.contrib.postgres.fields.ArrayField(
-                        base_field=models.CharField(max_length=100), blank=True, null=True, size=None
-                    ),
+                    models.JSONField(blank=True, null=True, default=list, serialize=False),
                 ),
                 (
                     'object_type',

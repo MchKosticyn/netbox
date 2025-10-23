@@ -1,4 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
+# Tests require ContentType available for proper behavior
 from django.test import TestCase
 
 from dcim.models import Location, Region, Site, SiteGroup

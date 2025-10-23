@@ -11,6 +11,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='wirelesslangroup',
             name='name',
-            field=models.CharField(db_collation='natural_sort', max_length=100, unique=True),
+            field=models.CharField(max_length=100, unique=True),
         ),
     ]

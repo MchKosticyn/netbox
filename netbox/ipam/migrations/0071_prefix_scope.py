@@ -1,5 +1,6 @@
 import django.db.models.deletion
-from django.contrib.contenttypes.models import ContentType
+# Migration safety: use apps.get_model in RunPython if needed
+
 from django.db import migrations, models
 
 
@@ -48,6 +49,12 @@ class Migration(migrations.Migration):
 
 
 def oc_prefix_scope(objectchange, reverting):
+    try:
+        from django.contrib.contenttypes.models import ContentType
+    except Exception:
+        from django.apps import apps as _apps
+        ContentType = _apps.get_model('contenttypes', 'ContentType')
+
     site_ct = ContentType.objects.get_by_natural_key('dcim', 'site').pk
     for data in (objectchange.prechange_data, objectchange.postchange_data):
         if data is None:

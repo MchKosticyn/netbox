@@ -3,7 +3,11 @@ from typing import Annotated, TYPE_CHECKING
 
 import strawberry
 import strawberry_django
-from django.contrib.contenttypes.models import ContentType as DjangoContentType
+try:
+    from django.contrib.contenttypes.models import ContentType as DjangoContentType
+except Exception:
+    DjangoContentType = None
+# Lazy-import ContentType to avoid import-time ORM access
 from strawberry.scalars import ID
 from strawberry_django import DatetimeFilterLookup, FilterLookup
 

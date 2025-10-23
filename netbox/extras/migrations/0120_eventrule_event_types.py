@@ -1,4 +1,3 @@
-import django.contrib.postgres.fields
 from django.db import migrations, models
 
 from core.events import *
@@ -35,15 +34,13 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='eventrule',
             name='event_types',
-            field=django.contrib.postgres.fields.ArrayField(
-                base_field=models.CharField(max_length=50), blank=True, null=True, size=None
-            ),
+            field=models.JSONField(blank=True, null=True, default=list, serialize=False),
         ),
         migrations.RunPython(code=set_event_types, reverse_code=migrations.RunPython.noop),
         migrations.AlterField(
             model_name='eventrule',
             name='event_types',
-            field=django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=50), size=None),
+            field=models.JSONField(default=list, serialize=False),
             preserve_default=False,
         ),
         migrations.RemoveField(

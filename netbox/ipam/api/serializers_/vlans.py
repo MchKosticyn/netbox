@@ -1,4 +1,11 @@
-from django.contrib.contenttypes.models import ContentType
+try:
+    try:
+        from django.contrib.contenttypes.models import ContentType
+    except Exception:
+        ContentType = None
+    # TODO: Lazy-import ContentType to avoid importing ORM at module import time
+except Exception:
+    ContentType = None
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 

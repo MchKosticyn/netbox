@@ -1,5 +1,13 @@
 from django import forms
-from django.contrib.contenttypes.models import ContentType
+try:
+    try:
+        from django.contrib.contenttypes.models import ContentType
+    except Exception:
+        ContentType = None
+# TODO: Lazy-import ContentType to avoid importing ORM at module import time
+
+except Exception:
+    ContentType = None
 from django.core.exceptions import ObjectDoesNotExist, ValidationError
 from django.utils.translation import gettext_lazy as _
 
@@ -605,7 +613,7 @@ class VLANGroupForm(TenancyForm, NetBoxModelForm):
         label=_('VLAN IDs')
     )
     scope_type = ContentTypeChoiceField(
-        queryset=ContentType.objects.filter(model__in=VLANGROUP_SCOPE_TYPES),
+        queryset=ContentType.objects.filter(model__in=VLANGROUP_SCOPE_TYPES) if ContentType is not None else [],
         widget=HTMXSelect(),
         required=False,
         label=_('Scope type')
@@ -643,12 +651,13 @@ class VLANGroupForm(TenancyForm, NetBoxModelForm):
 
         if scope_type_id := get_field_value(self, 'scope_type'):
             try:
-                scope_type = ContentType.objects.get(pk=scope_type_id)
-                model = scope_type.model_class()
-                self.fields['scope'].queryset = model.objects.all()
-                self.fields['scope'].widget.attrs['selector'] = model._meta.label_lower
-                self.fields['scope'].disabled = False
-                self.fields['scope'].label = _(bettertitle(model._meta.verbose_name))
+                if ContentType is not None:
+                    scope_type = ContentType.objects.get(pk=scope_type_id)
+                    model = scope_type.model_class()
+                    self.fields['scope'].queryset = model.objects.all()
+                    self.fields['scope'].widget.attrs['selector'] = model._meta.label_lower
+                    self.fields['scope'].disabled = False
+                    self.fields['scope'].label = _(bettertitle(model._meta.verbose_name))
             except ObjectDoesNotExist:
                 pass
 
@@ -761,7 +770,7 @@ class ServiceTemplateForm(NetBoxModelForm):
 
 class ServiceForm(NetBoxModelForm):
     parent_object_type = ContentTypeChoiceField(
-        queryset=ContentType.objects.filter(SERVICE_ASSIGNMENT_MODELS),
+        queryset=ContentType.objects.filter(SERVICE_ASSIGNMENT_MODELS) if ContentType is not None else [],
         widget=HTMXSelect(),
         required=True,
         label=_('Parent type')
@@ -815,24 +824,25 @@ class ServiceForm(NetBoxModelForm):
 
         if parent_object_type_id := get_field_value(self, 'parent_object_type'):
             try:
-                parent_type = ContentType.objects.get(pk=parent_object_type_id)
-                model = parent_type.model_class()
-                if model == Device:
-                    self.fields['ipaddresses'].widget.add_query_params({
-                        'device_id': '$parent',
-                    })
-                elif model == VirtualMachine:
-                    self.fields['ipaddresses'].widget.add_query_params({
-                        'virtual_machine_id': '$parent',
-                    })
-                elif model == FHRPGroup:
-                    self.fields['ipaddresses'].widget.add_query_params({
-                        'fhrpgroup_id': '$parent',
-                    })
-                self.fields['parent'].queryset = model.objects.all()
-                self.fields['parent'].widget.attrs['selector'] = model._meta.label_lower
-                self.fields['parent'].disabled = False
-                self.fields['parent'].label = _(bettertitle(model._meta.verbose_name))
+                if ContentType is not None:
+                    parent_type = ContentType.objects.get(pk=parent_object_type_id)
+                    model = parent_type.model_class()
+                    if model == Device:
+                        self.fields['ipaddresses'].widget.add_query_params({
+                            'device_id': '$parent',
+                        })
+                    elif model == VirtualMachine:
+                        self.fields['ipaddresses'].widget.add_query_params({
+                            'virtual_machine_id': '$parent',
+                        })
+                    elif model == FHRPGroup:
+                        self.fields['ipaddresses'].widget.add_query_params({
+                            'fhrpgroup_id': '$parent',
+                        })
+                    self.fields['parent'].queryset = model.objects.all()
+                    self.fields['parent'].widget.attrs['selector'] = model._meta.label_lower
+                    self.fields['parent'].disabled = False
+                    self.fields['parent'].label = _(bettertitle(model._meta.verbose_name))
             except ObjectDoesNotExist:
                 pass
 

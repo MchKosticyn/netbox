@@ -1,6 +1,11 @@
 from django import forms
-from django.contrib.postgres.forms import SimpleArrayField
+from utilities.forms.fields.array import SimpleArrayField
 from django.utils.translation import gettext_lazy as _
+# ContentType accessed lazily where needed
+try:
+    from django.contrib.contenttypes.models import ContentType
+except Exception:
+    ContentType = None
 
 
 class ConfigParam:

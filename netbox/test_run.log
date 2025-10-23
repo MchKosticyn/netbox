@@ -1,0 +1,438 @@
+Creating test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
+Found 8099 test(s).
+Operations to perform:
+  Synchronize unmigrated apps: corsheaders, django_filters, django_htmx, django_prometheus, django_tables2, drf_spectacular, drf_spectacular_sidecar, forms, humanize, messages, mptt, rest_framework, staticfiles, strawberry_django, timezone_field, utilities
+  Apply all migrations: account, auth, circuits, contenttypes, core, dcim, django_rq, extras, ipam, sessions, social_django, taggit, tenancy, thumbnail, users, virtualization, vpn, wireless
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0001_initial... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying users.0001_squashed_0011... OK
+  Applying users.0002_squashed_0004... OK
+  Applying account.0001_initial... OK
+  Applying extras.0001_squashed... OK
+  Applying tenancy.0001_squashed_0012... OK
+  Applying dcim.0001_squashed...Last SQL statements (tail of sql_debug.log):
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.webhooks:Registered webhook callback netbox.tests.dummy_plugin.webhook_callbacks.set_context
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._device
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._rack
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.webhooks:Registered webhook callback netbox.tests.dummy_plugin.webhook_callbacks.set_context
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._device
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._rack
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.webhooks:Registered webhook callback netbox.tests.dummy_plugin.webhook_callbacks.set_context
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._device
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._rack
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.webhooks:Registered webhook callback netbox.tests.dummy_plugin.webhook_callbacks.set_context
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._device
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._rack
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.webhooks:Registered webhook callback netbox.tests.dummy_plugin.webhook_callbacks.set_context
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._device
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._rack
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.webhooks:Registered webhook callback netbox.tests.dummy_plugin.webhook_callbacks.set_context
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._device
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._rack
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.webhooks:Registered webhook callback netbox.tests.dummy_plugin.webhook_callbacks.set_context
+Traceback (most recent call last):
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/sqlite3/base.py", line 356, in execute
+    return super().execute(query)
+sqlite3.OperationalError: near "[]": syntax error
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/michael/Documents/Work/netbox/netbox/manage.py", line 40, in <module>
+    execute_from_command_line(sys.argv)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/__init__.py", line 436, in execute
+    self.fetch_command(subcommand).run_from_argv(self.argv)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/commands/test.py", line 24, in run_from_argv
+    super().run_from_argv(argv)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/base.py", line 416, in run_from_argv
+    self.execute(*args, **cmd_options)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/base.py", line 460, in execute
+    output = self.handle(*args, **options)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/commands/test.py", line 63, in handle
+    failures = test_runner.run_tests(test_labels)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/test/runner.py", line 1092, in run_tests
+    old_config = self.setup_databases(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/test/runner.py", line 990, in setup_databases
+    return _setup_databases(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/test/utils.py", line 204, in setup_databases
+    connection.creation.create_test_db(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/base/creation.py", line 78, in create_test_db
+    call_command(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/__init__.py", line 194, in call_command
+    return command.execute(*args, **defaults)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/base.py", line 460, in execute
+    output = self.handle(*args, **options)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/base.py", line 107, in wrapper
+    res = handle_func(*args, **kwargs)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/commands/migrate.py", line 353, in handle
+    post_migrate_state = executor.migrate(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/migrations/executor.py", line 135, in migrate
+    state = self._migrate_all_forwards(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/migrations/executor.py", line 167, in _migrate_all_forwards
+    state = self.apply_migration(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/migrations/executor.py", line 255, in apply_migration
+    state = migration.apply(state, schema_editor)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/migrations/migration.py", line 132, in apply
+    operation.database_forwards(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/migrations/operations/models.py", line 97, in database_forwards
+    schema_editor.create_model(model)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/base/schema.py", line 512, in create_model
+    self.execute(sql, params or None)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/base/schema.py", line 204, in execute
+    cursor.execute(sql, params)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/sqlite3/base.py", line 356, in execute
+    return super().execute(query)
+django.db.utils.OperationalError: near "[]": syntax error
+Creating test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
+Found 8099 test(s).
+Operations to perform:
+  Synchronize unmigrated apps: corsheaders, django_filters, django_htmx, django_prometheus, django_tables2, drf_spectacular, drf_spectacular_sidecar, forms, humanize, messages, mptt, rest_framework, staticfiles, strawberry_django, timezone_field, utilities
+  Apply all migrations: account, auth, circuits, contenttypes, core, dcim, django_rq, extras, ipam, sessions, social_django, taggit, tenancy, thumbnail, users, virtualization, vpn, wireless
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0001_initial... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying users.0001_squashed_0011... OK
+  Applying users.0002_squashed_0004... OK
+  Applying account.0001_initial... OK
+  Applying extras.0001_squashed... OK
+  Applying tenancy.0001_squashed_0012... OK
+  Applying dcim.0001_squashed...Last SQL statements (tail of sql_debug.log):
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.webhooks:Registered webhook callback netbox.tests.dummy_plugin.webhook_callbacks.set_context
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._device
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._rack
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.webhooks:Registered webhook callback netbox.tests.dummy_plugin.webhook_callbacks.set_context
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._device
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._rack
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.webhooks:Registered webhook callback netbox.tests.dummy_plugin.webhook_callbacks.set_context
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._device
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._rack
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.webhooks:Registered webhook callback netbox.tests.dummy_plugin.webhook_callbacks.set_context
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._device
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._rack
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.webhooks:Registered webhook callback netbox.tests.dummy_plugin.webhook_callbacks.set_context
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._device
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._rack
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.webhooks:Registered webhook callback netbox.tests.dummy_plugin.webhook_callbacks.set_context
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._device
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._rack
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.webhooks:Registered webhook callback netbox.tests.dummy_plugin.webhook_callbacks.set_context
+Traceback (most recent call last):
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/sqlite3/base.py", line 356, in execute
+    return super().execute(query)
+sqlite3.OperationalError: near "[]": syntax error
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/michael/Documents/Work/netbox/netbox/manage.py", line 40, in <module>
+    execute_from_command_line(sys.argv)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/__init__.py", line 436, in execute
+    self.fetch_command(subcommand).run_from_argv(self.argv)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/commands/test.py", line 24, in run_from_argv
+    super().run_from_argv(argv)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/base.py", line 416, in run_from_argv
+    self.execute(*args, **cmd_options)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/base.py", line 460, in execute
+    output = self.handle(*args, **options)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/commands/test.py", line 63, in handle
+    failures = test_runner.run_tests(test_labels)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/test/runner.py", line 1092, in run_tests
+    old_config = self.setup_databases(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/test/runner.py", line 990, in setup_databases
+    return _setup_databases(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/test/utils.py", line 204, in setup_databases
+    connection.creation.create_test_db(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/base/creation.py", line 78, in create_test_db
+    call_command(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/__init__.py", line 194, in call_command
+    return command.execute(*args, **defaults)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/base.py", line 460, in execute
+    output = self.handle(*args, **options)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/base.py", line 107, in wrapper
+    res = handle_func(*args, **kwargs)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/commands/migrate.py", line 353, in handle
+    post_migrate_state = executor.migrate(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/migrations/executor.py", line 135, in migrate
+    state = self._migrate_all_forwards(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/migrations/executor.py", line 167, in _migrate_all_forwards
+    state = self.apply_migration(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/migrations/executor.py", line 255, in apply_migration
+    state = migration.apply(state, schema_editor)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/migrations/migration.py", line 132, in apply
+    operation.database_forwards(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/migrations/operations/models.py", line 97, in database_forwards
+    schema_editor.create_model(model)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/base/schema.py", line 512, in create_model
+    self.execute(sql, params or None)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/base/schema.py", line 204, in execute
+    cursor.execute(sql, params)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/sqlite3/base.py", line 356, in execute
+    return super().execute(query)
+django.db.utils.OperationalError: near "[]": syntax error
+Creating test database for alias 'default' ('file:memorydb_default?mode=memory&cache=shared')...
+Found 8099 test(s).
+Operations to perform:
+  Synchronize unmigrated apps: corsheaders, django_filters, django_htmx, django_prometheus, django_tables2, drf_spectacular, drf_spectacular_sidecar, forms, humanize, messages, mptt, rest_framework, staticfiles, strawberry_django, timezone_field, utilities
+  Apply all migrations: account, auth, circuits, contenttypes, core, dcim, django_rq, extras, ipam, sessions, social_django, taggit, tenancy, thumbnail, users, virtualization, vpn, wireless
+Synchronizing apps without migrations:
+  Creating tables...
+    Running deferred SQL...
+Running migrations:
+  Applying contenttypes.0001_initial... OK
+  Applying contenttypes.0002_remove_content_type_name... OK
+  Applying auth.0001_initial... OK
+  Applying auth.0002_alter_permission_name_max_length... OK
+  Applying auth.0003_alter_user_email_max_length... OK
+  Applying auth.0004_alter_user_username_opts... OK
+  Applying auth.0005_alter_user_last_login_null... OK
+  Applying auth.0006_require_contenttypes_0002... OK
+  Applying auth.0007_alter_validators_add_error_messages... OK
+  Applying auth.0008_alter_user_username_max_length... OK
+  Applying auth.0009_alter_user_last_name_max_length... OK
+  Applying auth.0010_alter_group_name_max_length... OK
+  Applying auth.0011_update_proxy_permissions... OK
+  Applying auth.0012_alter_user_first_name_max_length... OK
+  Applying users.0001_squashed_0011... OK
+  Applying users.0002_squashed_0004... OK
+  Applying account.0001_initial... OK
+  Applying extras.0001_squashed... OK
+  Applying tenancy.0001_squashed_0012... OK
+  Applying dcim.0001_squashed...Last SQL statements (tail of sql_debug.log):
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.webhooks:Registered webhook callback netbox.tests.dummy_plugin.webhook_callbacks.set_context
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._device
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._rack
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.webhooks:Registered webhook callback netbox.tests.dummy_plugin.webhook_callbacks.set_context
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._device
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._rack
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.webhooks:Registered webhook callback netbox.tests.dummy_plugin.webhook_callbacks.set_context
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._device
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._rack
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.webhooks:Registered webhook callback netbox.tests.dummy_plugin.webhook_callbacks.set_context
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._device
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._rack
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._device
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._rack
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'circuits.models.circuits.CircuitTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._device
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._rack
+DEBUG:netbox.denormalized:Registering denormalized field <class 'dcim.models.cables.CableTermination'>._location
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._site
+DEBUG:netbox.denormalized:Registering denormalized field <class 'ipam.models.ip.Prefix'>._location
+DEBUG:netbox.webhooks:Registered webhook callback netbox.tests.dummy_plugin.webhook_callbacks.set_context
+Traceback (most recent call last):
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/sqlite3/base.py", line 356, in execute
+    return super().execute(query)
+sqlite3.OperationalError: near "[]": syntax error
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/michael/Documents/Work/netbox/netbox/manage.py", line 40, in <module>
+    execute_from_command_line(sys.argv)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/__init__.py", line 442, in execute_from_command_line
+    utility.execute()
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/__init__.py", line 436, in execute
+    self.fetch_command(subcommand).run_from_argv(self.argv)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/commands/test.py", line 24, in run_from_argv
+    super().run_from_argv(argv)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/base.py", line 416, in run_from_argv
+    self.execute(*args, **cmd_options)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/base.py", line 460, in execute
+    output = self.handle(*args, **options)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/commands/test.py", line 63, in handle
+    failures = test_runner.run_tests(test_labels)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/test/runner.py", line 1092, in run_tests
+    old_config = self.setup_databases(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/test/runner.py", line 990, in setup_databases
+    return _setup_databases(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/test/utils.py", line 204, in setup_databases
+    connection.creation.create_test_db(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/base/creation.py", line 78, in create_test_db
+    call_command(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/__init__.py", line 194, in call_command
+    return command.execute(*args, **defaults)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/base.py", line 460, in execute
+    output = self.handle(*args, **options)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/base.py", line 107, in wrapper
+    res = handle_func(*args, **kwargs)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/core/management/commands/migrate.py", line 353, in handle
+    post_migrate_state = executor.migrate(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/migrations/executor.py", line 135, in migrate
+    state = self._migrate_all_forwards(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/migrations/executor.py", line 167, in _migrate_all_forwards
+    state = self.apply_migration(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/migrations/executor.py", line 255, in apply_migration
+    state = migration.apply(state, schema_editor)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/migrations/migration.py", line 132, in apply
+    operation.database_forwards(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/migrations/operations/models.py", line 97, in database_forwards
+    schema_editor.create_model(model)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/base/schema.py", line 512, in create_model
+    self.execute(sql, params or None)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/base/schema.py", line 204, in execute
+    cursor.execute(sql, params)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 79, in execute
+    return self._execute_with_wrappers(
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 92, in _execute_with_wrappers
+    return executor(sql, params, many, context)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 100, in _execute
+    with self.db.wrap_database_errors:
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/utils.py", line 91, in __exit__
+    raise dj_exc_value.with_traceback(traceback) from exc_value
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/utils.py", line 103, in _execute
+    return self.cursor.execute(sql)
+  File "/Users/michael/Documents/Work/netbox/netbox/.venv/lib/python3.10/site-packages/django/db/backends/sqlite3/base.py", line 356, in execute
+    return super().execute(query)
+django.db.utils.OperationalError: near "[]": syntax error

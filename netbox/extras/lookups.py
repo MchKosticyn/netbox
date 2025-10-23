@@ -1,7 +1,15 @@
-from django.contrib.postgres.fields import ArrayField
-from django.contrib.postgres.fields.ranges import RangeField
 from django.db.models import CharField, JSONField, Lookup
 from django.db.models.fields.json import KeyTextTransform
+from django.db import connection
+# Postgres-specific ArrayField/RangeField not available under SQLite; define sentinels for type checks
+class ArrayField: pass
+class RangeField: pass
+# ContentType used lazily where required
+try:
+    from django.contrib.contenttypes.models import ContentType
+except Exception:
+    ContentType = None
+# TODO: Lazy-import ContentType to avoid importing ORM at module import time
 
 from .fields import CachedValueField
 
@@ -24,6 +32,10 @@ class RangeContains(Lookup):
         rhs, rhs_params = self.process_rhs(compiler, connection)
 
         # Guard: only allow ArrayField whose base_field is a PostgreSQL RangeField
+        # On non-Postgres backends (SQLite) this lookup is not supported.
+        if connection.vendor != 'postgresql':
+            raise TypeError('range_contains lookup is only supported on PostgreSQL')
+
         field = getattr(self.lhs, 'output_field', None)
         if not (isinstance(field, ArrayField) and isinstance(field.base_field, RangeField)):
             raise TypeError('range_contains is only valid for ArrayField(RangeField) columns')

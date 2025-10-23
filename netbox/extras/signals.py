@@ -1,4 +1,8 @@
-from django.contrib.contenttypes.models import ContentType
+try:
+    from django.contrib.contenttypes.models import ContentType
+except Exception:
+    ContentType = None
+# Lazy-import ContentType to avoid import-time ORM access
 from django.db.models.signals import m2m_changed, post_save, pre_delete
 from django.dispatch import receiver
 

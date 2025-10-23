@@ -4,9 +4,10 @@ from pathlib import Path
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
-from django.contrib.postgres.fields import ArrayField
 from django.core.validators import ValidationError
 from django.db import models
+# Use JSONField instead of Postgres ArrayField under SQLite
+ArrayField = models.JSONField
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import escape

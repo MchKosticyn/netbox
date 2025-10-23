@@ -3,7 +3,8 @@ import json
 from django import forms
 from django.conf import settings
 from django.contrib.auth import password_validation
-from django.contrib.postgres.forms import SimpleArrayField
+from utilities.forms.fields.array import SimpleArrayField
+# SimpleArrayField is a local replacement for django.contrib.postgres.forms.SimpleArrayField (SQLite compatibility)
 from django.core.exceptions import FieldError
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
