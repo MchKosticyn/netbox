@@ -70,7 +70,7 @@ class VirtualMachine(ContactsMixin, ImageAttachmentsMixin, RenderConfigMixin, Co
     name = models.CharField(
         verbose_name=_('name'),
         max_length=64,
-        db_collation="natural_sort"
+        # db_collation omitted under SQLite: natural_sort
     )
     status = models.CharField(
         max_length=50,
@@ -275,7 +275,7 @@ class ComponentModel(NetBoxModel):
     name = models.CharField(
         verbose_name=_('name'),
         max_length=64,
-        db_collation="natural_sort"
+        # db_collation omitted under SQLite: natural_sort
     )
     description = models.CharField(
         verbose_name=_('description'),

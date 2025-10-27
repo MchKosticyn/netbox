@@ -1,8 +1,8 @@
-import django.contrib.postgres.fields
 import django.db.models.deletion
 import taggit.managers
 from django.conf import settings
 from django.db import migrations, models
+# Postgres-specific constructs removed for SQLite compatibility
 
 import extras.models.mixins
 import utilities.json
@@ -36,8 +36,8 @@ class Migration(migrations.Migration):
             name='Dashboard',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False)),
-                ('layout', models.JSONField(default=list)),
-                ('config', models.JSONField(default=dict)),
+                ('layout', models.JSONField(default=list, serialize=False)),
+                ('config', models.JSONField(default=dict, serialize=False)),
                 (
                     'user',
                     models.OneToOneField(
@@ -139,14 +139,7 @@ class Migration(migrations.Migration):
                 ('base_choices', models.CharField(blank=True, max_length=50)),
                 (
                     'extra_choices',
-                    django.contrib.postgres.fields.ArrayField(
-                        base_field=django.contrib.postgres.fields.ArrayField(
-                            base_field=models.CharField(max_length=100), size=2
-                        ),
-                        blank=True,
-                        null=True,
-                        size=None,
-                    ),
+                    models.JSONField(blank=True, null=True, default=list, serialize=False),
                 ),
                 ('order_alphabetically', models.BooleanField(default=False)),
             ],

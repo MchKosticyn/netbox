@@ -23,19 +23,22 @@ class IKEProposal(PrimaryModel):
         verbose_name=_('name'),
         max_length=100,
         unique=True,
-        db_collation="natural_sort"
+        # db_collation omitted under SQLite: natural_sort
     )
     authentication_method = models.CharField(
         verbose_name=('authentication method'),
-        choices=AuthenticationMethodChoices
+        choices=AuthenticationMethodChoices,
+        max_length=50,
     )
     encryption_algorithm = models.CharField(
         verbose_name=_('encryption algorithm'),
-        choices=EncryptionAlgorithmChoices
+        choices=EncryptionAlgorithmChoices,
+        max_length=50,
     )
     authentication_algorithm = models.CharField(
         verbose_name=_('authentication algorithm'),
         choices=AuthenticationAlgorithmChoices,
+        max_length=50,
         blank=True,
         null=True
     )
@@ -69,7 +72,7 @@ class IKEPolicy(PrimaryModel):
         verbose_name=_('name'),
         max_length=100,
         unique=True,
-        db_collation="natural_sort"
+        # db_collation omitted under SQLite: natural_sort
     )
     version = models.PositiveSmallIntegerField(
         verbose_name=_('version'),
@@ -79,6 +82,7 @@ class IKEPolicy(PrimaryModel):
     mode = models.CharField(
         verbose_name=_('mode'),
         choices=IKEModeChoices,
+        max_length=50,
         blank=True,
         null=True
     )
@@ -128,17 +132,19 @@ class IPSecProposal(PrimaryModel):
         verbose_name=_('name'),
         max_length=100,
         unique=True,
-        db_collation="natural_sort"
+        # db_collation omitted under SQLite: natural_sort
     )
     encryption_algorithm = models.CharField(
         verbose_name=_('encryption'),
         choices=EncryptionAlgorithmChoices,
+        max_length=50,
         blank=True,
         null=True
     )
     authentication_algorithm = models.CharField(
         verbose_name=_('authentication'),
         choices=AuthenticationAlgorithmChoices,
+        max_length=50,
         blank=True,
         null=True
     )
@@ -180,7 +186,7 @@ class IPSecPolicy(PrimaryModel):
         verbose_name=_('name'),
         max_length=100,
         unique=True,
-        db_collation="natural_sort"
+        # db_collation omitted under SQLite: natural_sort
     )
     proposals = models.ManyToManyField(
         to='vpn.IPSecProposal',
@@ -216,11 +222,12 @@ class IPSecProfile(PrimaryModel):
         verbose_name=_('name'),
         max_length=100,
         unique=True,
-        db_collation="natural_sort"
+        # db_collation omitted under SQLite: natural_sort
     )
     mode = models.CharField(
         verbose_name=_('mode'),
-        choices=IPSecModeChoices
+        choices=IPSecModeChoices,
+        max_length=50,
     )
     ike_policy = models.ForeignKey(
         to='vpn.IKEPolicy',

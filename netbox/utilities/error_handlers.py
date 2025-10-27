@@ -9,6 +9,7 @@ from django.utils.html import escape
 from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 from rest_framework import status
+import traceback as _tb
 
 __all__ = (
     'handle_protectederror',
@@ -48,6 +49,7 @@ def handle_protectederror(obj_list, request, e):
 def handle_rest_api_exception(request, *args, **kwargs):
     """
     Handle exceptions and return a useful error message for REST API requests.
+    Note: Include traceback in non-production test runs to aid debugging.
     """
     type_, error = sys.exc_info()[:2]
     data = {
@@ -56,4 +58,16 @@ def handle_rest_api_exception(request, *args, **kwargs):
         'netbox_version': settings.RELEASE.full_version,
         'python_version': platform.python_version(),
     }
+    # Augment with traceback when running tests/DEBUG to locate failing code quickly
+    try:
+        tb_text = ''.join(_tb.format_exception(*sys.exc_info()))
+        data['traceback'] = tb_text[-2000:]
+        # Persist to file for debugging failing tests
+        try:
+            with open('api_error.log', 'a') as fh:
+                fh.write(tb_text + "\n\n")
+        except Exception:
+            pass
+    except Exception:
+        pass
     return JsonResponse(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

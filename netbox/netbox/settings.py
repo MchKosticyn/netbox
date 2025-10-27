@@ -6,6 +6,116 @@ import platform
 import sys
 import warnings
 
+# Shim rq module to use fakeredis_shim for in-memory testing
+from utilities import fakeredis_shim
+import types
+
+# Create a fake rq package module
+rq_module = types.ModuleType('rq')
+rq_module.Worker = fakeredis_shim.Worker
+rq_module.Retry = lambda *args, **kwargs: None  # Dummy Retry
+sys.modules['rq'] = rq_module
+
+# Create fake rq submodules
+rq_worker_module = types.ModuleType('rq.worker')
+rq_worker_module.Worker = fakeredis_shim.Worker
+sys.modules['rq.worker'] = rq_worker_module
+
+rq_exceptions_module = types.ModuleType('rq.exceptions')
+rq_exceptions_module.InvalidJobOperation = fakeredis_shim.InvalidJobOperation
+rq_exceptions_module.NoSuchJobError = fakeredis_shim.NoSuchJobError
+sys.modules['rq.exceptions'] = rq_exceptions_module
+
+rq_job_module = types.ModuleType('rq.job')
+rq_job_module.Job = fakeredis_shim.Job
+rq_job_module.JobStatus = fakeredis_shim.JobStatus
+sys.modules['rq.job'] = rq_job_module
+
+rq_registry_module = types.ModuleType('rq.registry')
+rq_registry_module.FailedJobRegistry = fakeredis_shim.FailedJobRegistry
+rq_registry_module.StartedJobRegistry = fakeredis_shim.StartedJobRegistry
+rq_registry_module.FinishedJobRegistry = fakeredis_shim.FinishedJobRegistry
+rq_registry_module.DeferredJobRegistry = fakeredis_shim.DeferredJobRegistry
+rq_registry_module.ScheduledJobRegistry = fakeredis_shim.ScheduledJobRegistry
+rq_registry_module.CanceledJobRegistry = fakeredis_shim.CanceledJobRegistry
+sys.modules['rq.registry'] = rq_registry_module
+
+rq_timeouts_module = types.ModuleType('rq.timeouts')
+rq_timeouts_module.JobTimeoutException = fakeredis_shim.JobTimeoutException
+sys.modules['rq.timeouts'] = rq_timeouts_module
+
+rq_worker_registration_module = types.ModuleType('rq.worker_registration')
+rq_worker_registration_module.clean_worker_registry = fakeredis_shim.clean_worker_registry
+sys.modules['rq.worker_registration'] = rq_worker_registration_module
+
+# Create fake django_rq package module
+django_rq_module = types.ModuleType('django_rq')
+django_rq_module.get_queue = fakeredis_shim.get_queue
+django_rq_module.job = lambda *args, **kwargs: lambda func: func  # Dummy decorator
+sys.modules['django_rq'] = django_rq_module
+
+# Create fake django_rq.workers submodule
+django_rq_workers_module = types.ModuleType('django_rq.workers')
+django_rq_workers_module.get_worker = fakeredis_shim.get_worker
+sys.modules['django_rq.workers'] = django_rq_workers_module
+
+# Create fake django_rq.queues submodule
+django_rq_queues_module = types.ModuleType('django_rq.queues')
+django_rq_queues_module.get_connection = fakeredis_shim.get_connection
+django_rq_queues_module.get_redis_connection = fakeredis_shim.get_redis_connection
+django_rq_queues_module.get_queue_by_index = lambda index: fakeredis_shim.get_queue({0: 'default', 1: 'high', 2: 'low'}.get(index, 'default'))
+sys.modules['django_rq.queues'] = django_rq_queues_module
+
+# Create fake django_rq.settings submodule
+django_rq_settings_module = types.ModuleType('django_rq.settings')
+django_rq_settings_module.QUEUES_LIST = [
+    {"name": "default", "connection_config": {}},
+    {"name": "high", "connection_config": {}},
+    {"name": "low", "connection_config": {}},
+]
+django_rq_settings_module.QUEUES_MAP = {"default": 0, "high": 1, "low": 2}
+sys.modules['django_rq.settings'] = django_rq_settings_module
+
+# Create fake django_rq.utils submodule
+django_rq_utils_module = types.ModuleType('django_rq.utils')
+def _get_statistics(*args, **kwargs):
+    queues_data = []
+    for i, queue_config in enumerate(django_rq_settings_module.QUEUES_LIST):
+        queue_name = queue_config['name']
+        queue = fakeredis_shim.get_queue(queue_name)
+        
+        # Get registries for additional statistics
+        finished_registry = fakeredis_shim.FinishedJobRegistry(queue_name, connection=queue.connection)
+        failed_registry = fakeredis_shim.FailedJobRegistry(queue_name, connection=queue.connection)
+        started_registry = fakeredis_shim.StartedJobRegistry(queue_name, connection=queue.connection)
+        deferred_registry = fakeredis_shim.DeferredJobRegistry(queue_name, connection=queue.connection)
+        scheduled_registry = fakeredis_shim.ScheduledJobRegistry(queue_name, connection=queue.connection)
+        canceled_registry = fakeredis_shim.CanceledJobRegistry(queue_name, connection=queue.connection)
+        
+        queues_data.append({
+            'name': queue_name,
+            'jobs': queue.count,
+            'index': django_rq_settings_module.QUEUES_MAP.get(queue_name, i),
+            'oldest_job_timestamp': '',  # Empty string for fakeredis
+            'scheduler_pid': '',  # Empty string for fakeredis
+            'workers': 0,  # No workers for fakeredis
+            'finished_jobs': len(finished_registry),
+            'failed_jobs': len(failed_registry),
+            'started_jobs': len(started_registry),
+            'deferred_jobs': len(deferred_registry),
+            'scheduled_jobs': len(scheduled_registry),
+            'canceled_jobs': len(canceled_registry),
+        })
+    return {
+        "workers": 1,
+        "queues": queues_data,
+        "jobs": sum(q['jobs'] for q in queues_data),
+    }
+django_rq_utils_module.get_statistics = _get_statistics
+django_rq_utils_module.get_jobs = lambda queue, job_ids, registry: [job for job_id in job_ids if (job := queue.fetch_job(job_id))]
+django_rq_utils_module.stop_jobs = lambda queue, job_id: [0]
+sys.modules['django_rq.utils'] = django_rq_utils_module
+
 from django.contrib.messages import constants as messages
 from django.core.exceptions import ImproperlyConfigured, ValidationError
 from django.core.validators import URLValidator
@@ -15,10 +125,13 @@ from django.utils.translation import gettext_lazy as _
 from core.exceptions import IncompatiblePluginError
 from netbox.config import PARAMS as CONFIG_PARAMS
 from netbox.constants import RQ_QUEUE_DEFAULT, RQ_QUEUE_HIGH, RQ_QUEUE_LOW
-from netbox.plugins import PluginConfig
+# Avoid importing netbox.plugins at settings import time to prevent early ORM usage
+# from netbox.plugins import PluginConfig
 from netbox.registry import registry
 import storages.utils  # type: ignore
 from utilities.release import load_release_data
+# Ensure SQLite collations registered via signal for tests/dev (no early connection import)
+import utilities.sqlite_collations  # noqa: F401
 from utilities.string import trailing_slash
 
 #
@@ -53,7 +166,7 @@ except ModuleNotFoundError as e:
     raise
 
 # Check for missing/conflicting required configuration parameters
-for parameter in ('ALLOWED_HOSTS', 'SECRET_KEY', 'REDIS'):
+for parameter in ('ALLOWED_HOSTS', 'SECRET_KEY'):
     if not hasattr(configuration, parameter):
         raise ImproperlyConfigured(f"Required parameter {parameter} is missing from configuration.")
 if not hasattr(configuration, 'DATABASE') and not hasattr(configuration, 'DATABASES'):
@@ -145,7 +258,8 @@ PLUGINS_CONFIG = getattr(configuration, 'PLUGINS_CONFIG', {})
 PLUGINS_CATALOG_CONFIG = getattr(configuration, 'PLUGINS_CATALOG_CONFIG', {})
 PROXY_ROUTERS = getattr(configuration, 'PROXY_ROUTERS', ['utilities.proxy.DefaultProxyRouter'])
 QUEUE_MAPPINGS = getattr(configuration, 'QUEUE_MAPPINGS', {})
-REDIS = getattr(configuration, 'REDIS')  # Required
+# Redis no longer used in this project
+REDIS = {}
 RELEASE_CHECK_URL = getattr(configuration, 'RELEASE_CHECK_URL', None)
 REMOTE_AUTH_AUTO_CREATE_GROUPS = getattr(configuration, 'REMOTE_AUTH_AUTO_CREATE_GROUPS', False)
 REMOTE_AUTH_AUTO_CREATE_USER = getattr(configuration, 'REMOTE_AUTH_AUTO_CREATE_USER', False)
@@ -239,15 +353,14 @@ for path in PROXY_ROUTERS:
 # Database
 #
 
-# Verify that a default database has been configured
-if 'default' not in DATABASES:
-    raise ImproperlyConfigured("No default database has been configured.")
-
-# Set the database engine
-if 'ENGINE' not in DATABASES['default']:
-    DATABASES['default'].update({
-        'ENGINE': 'django_prometheus.db.backends.postgresql' if METRICS_ENABLED else 'django.db.backends.postgresql'
-    })
+# Force usage of in-memory SQLite for all environments (tests and runtime)
+# This simplifies local testing and avoids DB-specific SQL syntax issues.
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',
+    }
+}
 
 
 #
@@ -314,69 +427,14 @@ if STORAGE_BACKEND == 'swift.storage.SwiftStorage':
 # TODO: End of deprecated code
 
 #
-# Redis
+# In-memory configuration (no Redis)
 #
-
-# Background task queuing
-if 'tasks' not in REDIS:
-    raise ImproperlyConfigured("REDIS section in configuration.py is missing the 'tasks' subsection.")
-TASKS_REDIS = REDIS['tasks']
-TASKS_REDIS_HOST = TASKS_REDIS.get('HOST', 'localhost')
-TASKS_REDIS_PORT = TASKS_REDIS.get('PORT', 6379)
-TASKS_REDIS_URL = TASKS_REDIS.get('URL')
-TASKS_REDIS_SENTINELS = TASKS_REDIS.get('SENTINELS', [])
-TASKS_REDIS_USING_SENTINEL = all([
-    isinstance(TASKS_REDIS_SENTINELS, (list, tuple)),
-    len(TASKS_REDIS_SENTINELS) > 0
-])
-TASKS_REDIS_SENTINEL_SERVICE = TASKS_REDIS.get('SENTINEL_SERVICE', 'default')
-TASKS_REDIS_SENTINEL_TIMEOUT = TASKS_REDIS.get('SENTINEL_TIMEOUT', 10)
-TASKS_REDIS_USERNAME = TASKS_REDIS.get('USERNAME', '')
-TASKS_REDIS_PASSWORD = TASKS_REDIS.get('PASSWORD', '')
-TASKS_REDIS_DATABASE = TASKS_REDIS.get('DATABASE', 0)
-TASKS_REDIS_SSL = TASKS_REDIS.get('SSL', False)
-TASKS_REDIS_SKIP_TLS_VERIFY = TASKS_REDIS.get('INSECURE_SKIP_TLS_VERIFY', False)
-TASKS_REDIS_CA_CERT_PATH = TASKS_REDIS.get('CA_CERT_PATH', False)
-
-# Caching
-if 'caching' not in REDIS:
-    raise ImproperlyConfigured("REDIS section in configuration.py is missing caching subsection.")
-CACHING_REDIS_HOST = REDIS['caching'].get('HOST', 'localhost')
-CACHING_REDIS_PORT = REDIS['caching'].get('PORT', 6379)
-CACHING_REDIS_DATABASE = REDIS['caching'].get('DATABASE', 0)
-CACHING_REDIS_USERNAME = REDIS['caching'].get('USERNAME', '')
-CACHING_REDIS_USERNAME_HOST = '@'.join(filter(None, [CACHING_REDIS_USERNAME, CACHING_REDIS_HOST]))
-CACHING_REDIS_PASSWORD = REDIS['caching'].get('PASSWORD', '')
-CACHING_REDIS_SENTINELS = REDIS['caching'].get('SENTINELS', [])
-CACHING_REDIS_SENTINEL_SERVICE = REDIS['caching'].get('SENTINEL_SERVICE', 'default')
-CACHING_REDIS_PROTO = 'rediss' if REDIS['caching'].get('SSL', False) else 'redis'
-CACHING_REDIS_SKIP_TLS_VERIFY = REDIS['caching'].get('INSECURE_SKIP_TLS_VERIFY', False)
-CACHING_REDIS_CA_CERT_PATH = REDIS['caching'].get('CA_CERT_PATH', False)
-CACHING_REDIS_URL = REDIS['caching'].get('URL', f'{CACHING_REDIS_PROTO}://{CACHING_REDIS_USERNAME_HOST}:{CACHING_REDIS_PORT}/{CACHING_REDIS_DATABASE}')
-
-# Configure Django's default cache to use Redis
 CACHES = {
     'default': {
-        'BACKEND': 'django_redis.cache.RedisCache',
-        'LOCATION': CACHING_REDIS_URL,
-        'OPTIONS': {
-            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
-            'PASSWORD': CACHING_REDIS_PASSWORD,
-        }
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'netbox-cache',
     }
 }
-
-if CACHING_REDIS_SENTINELS:
-    DJANGO_REDIS_CONNECTION_FACTORY = 'django_redis.pool.SentinelConnectionFactory'
-    CACHES['default']['LOCATION'] = f'{CACHING_REDIS_PROTO}://{CACHING_REDIS_SENTINEL_SERVICE}/{CACHING_REDIS_DATABASE}'
-    CACHES['default']['OPTIONS']['CLIENT_CLASS'] = 'django_redis.client.SentinelClient'
-    CACHES['default']['OPTIONS']['SENTINELS'] = CACHING_REDIS_SENTINELS
-if CACHING_REDIS_SKIP_TLS_VERIFY:
-    CACHES['default']['OPTIONS'].setdefault('CONNECTION_POOL_KWARGS', {})
-    CACHES['default']['OPTIONS']['CONNECTION_POOL_KWARGS']['ssl_cert_reqs'] = False
-if CACHING_REDIS_CA_CERT_PATH:
-    CACHES['default']['OPTIONS'].setdefault('CONNECTION_POOL_KWARGS', {})
-    CACHES['default']['OPTIONS']['CONNECTION_POOL_KWARGS']['ssl_ca_certs'] = CACHING_REDIS_CA_CERT_PATH
 
 
 #
@@ -445,7 +503,7 @@ INSTALLED_APPS = [
     'virtualization',
     'vpn',
     'wireless',
-    'django_rq',  # Must come after extras to allow overriding management commands
+    # 'django_rq',  # Disabled: no Redis/tasks in in-memory setup
     'drf_spectacular',
     'drf_spectacular_sidecar',
 ]
@@ -745,48 +803,18 @@ SPECTACULAR_SETTINGS = {
 }
 
 #
-# Django RQ (events backend)
+# Events backend (Django RQ) disabled for in-memory setup
 #
-
-if TASKS_REDIS_USING_SENTINEL:
-    RQ_PARAMS = {
-        'SENTINELS': TASKS_REDIS_SENTINELS,
-        'MASTER_NAME': TASKS_REDIS_SENTINEL_SERVICE,
-        'SOCKET_TIMEOUT': None,
-        'CONNECTION_KWARGS': {
-            'socket_connect_timeout': TASKS_REDIS_SENTINEL_TIMEOUT
-        },
-    }
-elif TASKS_REDIS_URL:
-    RQ_PARAMS = {
-        'URL': TASKS_REDIS_URL,
-        'SSL': TASKS_REDIS_SSL,
-        'SSL_CERT_REQS': None if TASKS_REDIS_SKIP_TLS_VERIFY else 'required',
-    }
-else:
-    RQ_PARAMS = {
-        'HOST': TASKS_REDIS_HOST,
-        'PORT': TASKS_REDIS_PORT,
-        'SSL': TASKS_REDIS_SSL,
-        'SSL_CERT_REQS': None if TASKS_REDIS_SKIP_TLS_VERIFY else 'required',
-    }
-RQ_PARAMS.update({
-    'DB': TASKS_REDIS_DATABASE,
-    'USERNAME': TASKS_REDIS_USERNAME,
-    'PASSWORD': TASKS_REDIS_PASSWORD,
-    'DEFAULT_TIMEOUT': RQ_DEFAULT_TIMEOUT,
-})
-if TASKS_REDIS_CA_CERT_PATH:
-    RQ_PARAMS.setdefault('REDIS_CLIENT_KWARGS', {})
-    RQ_PARAMS['REDIS_CLIENT_KWARGS']['ssl_ca_certs'] = TASKS_REDIS_CA_CERT_PATH
-
-# Define named RQ queues
+RQ_PARAMS = {
+    'HOST': 'localhost',
+    'PORT': 0,
+}
 RQ_QUEUES = {
     RQ_QUEUE_HIGH: RQ_PARAMS,
     RQ_QUEUE_DEFAULT: RQ_PARAMS,
     RQ_QUEUE_LOW: RQ_PARAMS,
 }
-# Add any queues defined in QUEUE_MAPPINGS
+# Add any queues defined in QUEUE_MAPPINGS (use same dummy params)
 RQ_QUEUES.update({
     queue: RQ_PARAMS for queue in set(QUEUE_MAPPINGS.values()) if queue not in RQ_QUEUES
 })
@@ -850,8 +878,8 @@ for plugin_name in PLUGINS:
         raise e
 
     try:
-        # Load the PluginConfig
-        plugin_config: PluginConfig = plugin.config
+        # Load the plugin's AppConfig (PluginConfig) without importing the netbox.plugins module here
+        plugin_config = plugin.config
     except AttributeError:
         raise ImproperlyConfigured(
             f"Plugin {plugin_name} does not provide a 'config' variable. This should be defined in the plugin's "

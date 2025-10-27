@@ -1,4 +1,3 @@
-import django.contrib.postgres.fields
 from utilities.json import CustomFieldJSONEncoder
 import django.core.validators
 from django.db import migrations, models
@@ -285,15 +284,7 @@ class Migration(migrations.Migration):
                 ('protocol', models.CharField(max_length=50)),
                 (
                     'ports',
-                    django.contrib.postgres.fields.ArrayField(
-                        base_field=models.PositiveIntegerField(
-                            validators=[
-                                django.core.validators.MinValueValidator(1),
-                                django.core.validators.MaxValueValidator(65535),
-                            ]
-                        ),
-                        size=None,
-                    ),
+                    models.JSONField(),
                 ),
                 ('description', models.CharField(blank=True, max_length=200)),
                 (

@@ -1,4 +1,5 @@
 from django.contrib.contenttypes.models import ContentType
+# Tests require ContentType available for proper behavior
 from django.core.exceptions import ValidationError
 from django.test import TestCase, override_settings
 from netaddr import IPNetwork, IPSet

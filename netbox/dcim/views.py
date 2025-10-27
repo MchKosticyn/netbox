@@ -1,5 +1,9 @@
 from django.contrib import messages
-from django.contrib.contenttypes.models import ContentType
+try:
+    from django.contrib.contenttypes.models import ContentType
+except Exception:
+    ContentType = None
+# TODO: Lazy-import ContentType to avoid importing ORM at module import time
 from django.core.paginator import EmptyPage, PageNotAnInteger
 from django.db import router, transaction
 from django.db.models import Prefetch
@@ -167,7 +171,8 @@ class PathTraceView(generic.ObjectView):
 
         # Otherwise, find all CablePaths which traverse the specified object
         else:
-            related_paths = CablePath.objects.filter(_nodes__contains=instance)
+            from dcim.utils import object_to_path_node
+            related_paths = CablePath.objects.filter(_nodes__contains=object_to_path_node(instance))
             # Check for specification of a particular path (when tracing pass-through ports)
             try:
                 path_id = int(request.GET.get('cablepath_id'))

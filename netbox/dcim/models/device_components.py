@@ -51,7 +51,7 @@ class ComponentModel(NetBoxModel):
     name = models.CharField(
         verbose_name=_('name'),
         max_length=64,
-        db_collation="natural_sort"
+        # db_collation omitted under SQLite: natural_sort
     )
     label = models.CharField(
         verbose_name=_('label'),

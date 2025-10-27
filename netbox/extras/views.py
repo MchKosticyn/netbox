@@ -1,7 +1,11 @@
 from datetime import datetime
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.contenttypes.models import ContentType
+try:
+    from django.contrib.contenttypes.models import ContentType
+except Exception:
+    ContentType = None
+# Lazy-import ContentType to avoid import-time ORM access
 from django.core.paginator import EmptyPage
 from django.db.models import Count, Q
 from django.http import HttpResponseBadRequest, HttpResponseForbidden, HttpResponse

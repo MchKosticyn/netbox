@@ -1,6 +1,6 @@
 import django.db.models.deletion
 import taggit.managers
-from django.contrib.contenttypes.models import ContentType
+# Migration safety: use apps.get_model in RunPython if needed
 from django.db import migrations, models
 
 import utilities.json
@@ -10,6 +10,12 @@ from extras.choices import *
 def move_webhooks(apps, schema_editor):
     Webhook = apps.get_model('extras', 'Webhook')
     EventRule = apps.get_model('extras', 'EventRule')
+
+    try:
+        from django.contrib.contenttypes.models import ContentType
+    except Exception:
+        from django.apps import apps as _apps
+        ContentType = _apps.get_model('contenttypes', 'ContentType')
 
     webhook_ct = ContentType.objects.get_for_model(Webhook).pk
     for webhook in Webhook.objects.all():

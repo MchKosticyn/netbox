@@ -11,11 +11,11 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='provider',
             name='name',
-            field=models.CharField(db_collation='natural_sort', max_length=100, unique=True),
+            field=models.CharField(max_length=100, unique=True),
         ),
         migrations.AlterField(
             model_name='providernetwork',
             name='name',
-            field=models.CharField(db_collation='natural_sort', max_length=100),
+            field=models.CharField(max_length=100),
         ),
     ]

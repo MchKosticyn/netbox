@@ -1,11 +1,18 @@
 import inspect
 from collections import defaultdict
 
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.fields import ArrayField
-from django.contrib.postgres.indexes import GinIndex
+try:
+    from django.contrib.contenttypes.models import ContentType
+except Exception:
+    ContentType = None
 from django.core.exceptions import ObjectDoesNotExist
+# ContentType import is lazy to avoid import-time ORM access; use apps.get_model('contenttypes', 'ContentType') where needed
 from django.db import connection, models
+# Postgres-specific ArrayField and GinIndex are not used under SQLite; use JSONField and regular Index
+# TODO: These aliases are compatibility shims for SQLite; consider restoring Postgres types when running
+# against PostgreSQL (ArrayField from django.contrib.postgres, GinIndex from django.contrib.postgres.indexes).
+ArrayField = models.JSONField
+GinIndex = models.Index
 from django.db.models import Q
 from django.utils.translation import gettext as _
 
@@ -162,58 +169,60 @@ class ObjectTypeManager(models.Manager):
         return self.get_queryset().filter(features__contains=[feature])
 
 
-class ObjectType(ContentType):
-    """
-    Wrap Django's native ContentType model to use our custom manager.
-    """
-    contenttype_ptr = models.OneToOneField(
-        on_delete=models.CASCADE,
-        to='contenttypes.ContentType',
-        parent_link=True,
-        primary_key=True,
-        serialize=False,
-        related_name='object_type',
-    )
-    public = models.BooleanField(
-        default=False,
-    )
-    features = ArrayField(
-        base_field=models.CharField(max_length=50),
-        default=list,
-    )
+if ContentType is not None:
+    class ObjectType(ContentType):
+        """
+        Wrap Django's native ContentType model to use our custom manager.
+        """
+        contenttype_ptr = models.OneToOneField(
+            on_delete=models.CASCADE,
+            to='contenttypes.ContentType',
+            parent_link=True,
+            primary_key=True,
+            serialize=False,
+            related_name='object_type',
+        )
+        public = models.BooleanField(
+            default=False,
+        )
 
-    objects = ObjectTypeManager()
+        features = models.JSONField(default=list)
 
-    class Meta:
-        verbose_name = _('object type')
-        verbose_name_plural = _('object types')
-        ordering = ('app_label', 'model')
-        indexes = [
-            GinIndex(fields=['features']),
-        ]
+        objects = ObjectTypeManager()
 
-    @property
-    def app_labeled_name(self):
-        # Override ContentType's "app | model" representation style.
-        return f"{self.app_verbose_name} > {title(self.model_verbose_name)}"
+        class Meta:
+            verbose_name = _('object type')
+            verbose_name_plural = _('object types')
+            ordering = ('app_label', 'model')
+            indexes = [
+                models.Index(fields=['features']),
+            ]
 
-    @property
-    def app_verbose_name(self):
-        if model := self.model_class():
-            return model._meta.app_config.verbose_name
+        @property
+        def app_labeled_name(self):
+            # Override ContentType's "app | model" representation style.
+            return f"{self.app_verbose_name} > {title(self.model_verbose_name)}"
 
-    @property
-    def model_verbose_name(self):
-        if model := self.model_class():
-            return model._meta.verbose_name
+        @property
+        def app_verbose_name(self):
+            if model := self.model_class():
+                return model._meta.app_config.verbose_name
 
-    @property
-    def model_verbose_name_plural(self):
-        if model := self.model_class():
-            return model._meta.verbose_name_plural
+        @property
+        def model_verbose_name(self):
+            if model := self.model_class():
+                return model._meta.verbose_name
 
-    @property
-    def is_plugin_model(self):
-        if not (model := self.model_class()):
-            return  # Return null if model class is invalid
-        return isinstance(model._meta.app_config, PluginConfig)
+        @property
+        def model_verbose_name_plural(self):
+            if model := self.model_class():
+                return model._meta.verbose_name_plural
+
+        @property
+        def is_plugin_model(self):
+            if not (model := self.model_class()):
+                return  # Return null if model class is invalid
+            return isinstance(model._meta.app_config, PluginConfig)
+else:
+    # ContentType not available (apps not yet initialized). Defer defining ObjectType.
+    ObjectType = None

@@ -1,6 +1,7 @@
-from django.contrib.postgres.fields import ArrayField
 from django.core.serializers.json import Deserializer, Serializer as Serializer_  # noqa: F401
 from django.utils.encoding import is_protected_type
+# ArrayField is represented as JSON in SQLite
+ArrayField = dict  # sentinel used only for type checks in serializer
 
 # NOTE: Module must contain both Serializer and Deserializer
 

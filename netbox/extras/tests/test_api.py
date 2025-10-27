@@ -1,6 +1,7 @@
 import datetime
 
 from django.contrib.contenttypes.models import ContentType
+# Tests require ContentType to be importable
 from django.urls import reverse
 from django.utils.timezone import make_aware, now
 

@@ -1,10 +1,11 @@
-from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext as _
 from netaddr import AddrFormatError, EUI, eui64_unix_expanded, mac_unix_expanded
 
 from .lookups import PathContains
+
+# SQLite-only codebase: do not import or use PostgreSQL ArrayField
 
 __all__ = (
     'MACAddressField',
@@ -13,13 +14,7 @@ __all__ = (
 )
 
 
-class mac_unix_expanded_uppercase(mac_unix_expanded):
-    word_fmt = '%.2X'
-
-
-class eui64_unix_expanded_uppercase(eui64_unix_expanded):
-    word_fmt = '%.2X'
-
+# Keep default netaddr dialects (lowercase, colon-separated) to mirror PostgreSQL canonical output.
 
 #
 # Fields
@@ -43,7 +38,8 @@ class MACAddressField(models.Field):
         if type(value) is str:
             value = value.replace(' ', '')
         try:
-            return EUI(value, version=48, dialect=mac_unix_expanded_uppercase)
+            # Use lowercase canonical formatting to match PostgreSQL macaddr text representation
+            return EUI(value, version=48, dialect=mac_unix_expanded)
         except AddrFormatError:
             raise ValidationError(_("Invalid MAC address format: {value}").format(value=value))
 
@@ -72,7 +68,8 @@ class WWNField(models.Field):
         if value is None:
             return value
         try:
-            return EUI(value, version=64, dialect=eui64_unix_expanded_uppercase)
+            # Use lowercase canonical formatting for consistency with PostgreSQL macaddr8
+            return EUI(value, version=64, dialect=eui64_unix_expanded)
         except AddrFormatError:
             raise ValidationError(_("Invalid WWN format: {value}").format(value=value))
 
@@ -85,13 +82,13 @@ class WWNField(models.Field):
         return str(self.to_python(value))
 
 
-class PathField(ArrayField):
+class PathField(models.JSONField):
     """
-    An ArrayField which holds a set of objects, each identified by a (type, ID) tuple.
+    SQLite-compatible JSONField storing a list of object identifiers.
     """
     def __init__(self, **kwargs):
-        kwargs['base_field'] = models.CharField(max_length=40)
+        kwargs.setdefault('default', list)
         super().__init__(**kwargs)
 
-
+# Register a placeholder lookup name to avoid import-time registration errors
 PathField.register_lookup(PathContains)

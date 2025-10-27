@@ -1,4 +1,3 @@
-import django.contrib.postgres.fields
 import django.core.validators
 import django.db.models.functions.comparison
 import taggit.managers
@@ -206,15 +205,7 @@ class Migration(migrations.Migration):
                 ('protocol', models.CharField(max_length=50)),
                 (
                     'ports',
-                    django.contrib.postgres.fields.ArrayField(
-                        base_field=models.PositiveIntegerField(
-                            validators=[
-                                django.core.validators.MinValueValidator(1),
-                                django.core.validators.MaxValueValidator(65535),
-                            ]
-                        ),
-                        size=None,
-                    ),
+                    models.JSONField(),
                 ),
                 ('description', models.CharField(blank=True, max_length=200)),
                 ('name', models.CharField(max_length=100, unique=True)),
@@ -476,13 +467,6 @@ class Migration(migrations.Migration):
             name='mark_utilized',
             field=models.BooleanField(default=False),
         ),
-        migrations.AddIndex(
-            model_name='ipaddress',
-            index=models.Index(
-                django.db.models.functions.comparison.Cast(
-                    ipam.lookups.Host('address'), output_field=ipam.fields.IPAddressField()
-                ),
-                name='ipam_ipaddress_host',
-            ),
-        ),
+        # Postgres-specific functional index (Host/Cast) skipped for sqlite
+        migrations.RunPython(code=migrations.RunPython.noop),
     ]

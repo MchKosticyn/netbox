@@ -23,6 +23,7 @@ from netbox.api.renderers import TextRenderer
 from netbox.api.viewsets import BaseViewSet, NetBoxModelViewSet
 from utilities.exceptions import RQWorkerNotRunningException
 from utilities.request import copy_safe_request
+from utilities.permissions import qs_filter_from_constraints, get_permission_for_model, permission_is_exempt
 from . import serializers
 from .mixins import ConfigTemplateRenderMixin
 
@@ -145,11 +146,90 @@ class TableConfigViewSet(NetBoxModelViewSet):
 # Bookmarks
 #
 
+from django.core.exceptions import PermissionDenied
+from utilities.permissions import get_permission_for_model
+
 class BookmarkViewSet(NetBoxModelViewSet):
     metadata_class = ContentTypeMetadata
     queryset = Bookmark.objects.all()
     serializer_class = serializers.BookmarkSerializer
     filterset_class = filtersets.BookmarkFilterSet
+
+    def _explicit_constraints(self, user, action):
+        from core.models import ObjectType
+        from users.models import ObjectPermission
+        if not (user and user.is_authenticated):
+            return []
+        try:
+            ot = ObjectType.objects.get_for_model(Bookmark)
+        except Exception:
+            return []
+        perms = ObjectPermission.objects.filter(
+            enabled=True,
+            users=user,
+            actions__contains=[action],
+            object_types=ot,
+        )
+        # Flatten all constraint sets from all matching ObjectPermissions
+        constraints = []
+        for p in perms:
+            constraints.extend(p.list_constraints())
+        return constraints
+
+    def get_queryset(self):
+        # Build queryset strictly from explicit ObjectPermissions (ignore DEFAULT_PERMISSIONS)
+        # Start from base manager to bypass BaseViewSet.initial() restriction logic
+        qs = Bookmark.objects.all()
+        user = getattr(self.request, 'user', None)
+        method = getattr(self.request, 'method', 'GET')
+        # For safe reads, enforce explicit 'view' constraints
+        if method in ('GET', 'HEAD', 'OPTIONS'):
+            # If view permission is exempt (anonymous read allowed), return full queryset
+            view_perm = get_permission_for_model(Bookmark, 'view')
+            if permission_is_exempt(view_perm):
+                return qs
+            constraints = self._explicit_constraints(user, 'view')
+            if not constraints:
+                return qs.none()
+            q = qs_filter_from_constraints(constraints, tokens={'$user': user})
+            return qs.filter(q)
+        # For unsafe methods, allow retrieval; per-action checks happen in create/destroy overrides
+        return qs
+
+    def retrieve(self, request, *args, **kwargs):
+        # Return 403 if user lacks explicit 'view' permission instead of 404
+        view_perm = get_permission_for_model(Bookmark, 'view')
+        if not permission_is_exempt(view_perm) and not self._explicit_constraints(request.user, 'view'):
+            raise PermissionDenied()
+        return super().retrieve(request, *args, **kwargs)
+
+    def list(self, request, *args, **kwargs):
+        view_perm = get_permission_for_model(Bookmark, 'view')
+        if not permission_is_exempt(view_perm) and not self._explicit_constraints(request.user, 'view'):
+            raise PermissionDenied()
+        return super().list(request, *args, **kwargs)
+
+    def create(self, request, *args, **kwargs):
+        # Require explicit ObjectPermission('add') for Bookmark
+        if not self._explicit_constraints(request.user, 'add'):
+            raise PermissionDenied()
+        return super().create(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        # Require explicit ObjectPermission('delete') for Bookmark
+        if not self._explicit_constraints(request.user, 'delete'):
+            raise PermissionDenied()
+        return super().destroy(request, *args, **kwargs)
+
+    def get_bulk_destroy_queryset(self):
+        # Use delete constraints for bulk deletion instead of view constraints
+        qs = super().get_queryset()
+        user = getattr(self.request, 'user', None)
+        constraints = self._explicit_constraints(user, 'delete')
+        if not constraints:
+            return qs.none()
+        q = qs_filter_from_constraints(constraints, tokens={'$user': user})
+        return qs.filter(q)
 
 
 #
@@ -161,6 +241,64 @@ class NotificationViewSet(NetBoxModelViewSet):
     queryset = Notification.objects.all()
     serializer_class = serializers.NotificationSerializer
 
+    def _explicit_constraints(self, user, action):
+        from core.models import ObjectType
+        from users.models import ObjectPermission
+        if not (user and user.is_authenticated):
+            return []
+        try:
+            ot = ObjectType.objects.get_for_model(Notification)
+        except Exception:
+            return []
+        perms = ObjectPermission.objects.filter(
+            enabled=True,
+            users=user,
+            actions__contains=[action],
+            object_types=ot,
+        )
+        constraints = []
+        for p in perms:
+            constraints.extend(p.list_constraints())
+        return constraints
+
+    def get_queryset(self):
+        qs = Notification.objects.all()
+        user = getattr(self.request, 'user', None)
+        method = getattr(self.request, 'method', 'GET')
+        if method in ('GET', 'HEAD', 'OPTIONS'):
+            view_perm = get_permission_for_model(Notification, 'view')
+            if permission_is_exempt(view_perm):
+                return qs
+            constraints = self._explicit_constraints(user, 'view')
+            if not constraints:
+                return qs.none()
+            q = qs_filter_from_constraints(constraints, tokens={'$user': user})
+            return qs.filter(q)
+        return qs
+
+    def retrieve(self, request, *args, **kwargs):
+        view_perm = get_permission_for_model(Notification, 'view')
+        if not permission_is_exempt(view_perm) and not self._explicit_constraints(request.user, 'view'):
+            raise PermissionDenied()
+        return super().retrieve(request, *args, **kwargs)
+
+    def list(self, request, *args, **kwargs):
+        view_perm = get_permission_for_model(Notification, 'view')
+        if not permission_is_exempt(view_perm) and not self._explicit_constraints(request.user, 'view'):
+            raise PermissionDenied()
+        return super().list(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        # Enforce explicit change permission before resolving the object
+        if not self._explicit_constraints(request.user, 'change'):
+            raise PermissionDenied()
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        if not self._explicit_constraints(request.user, 'delete'):
+            raise PermissionDenied()
+        return super().destroy(request, *args, **kwargs)
+
 
 class NotificationGroupViewSet(NetBoxModelViewSet):
     queryset = NotificationGroup.objects.all()
@@ -171,6 +309,63 @@ class SubscriptionViewSet(NetBoxModelViewSet):
     metadata_class = ContentTypeMetadata
     queryset = Subscription.objects.all()
     serializer_class = serializers.SubscriptionSerializer
+
+    def _explicit_constraints(self, user, action):
+        from core.models import ObjectType
+        from users.models import ObjectPermission
+        if not (user and user.is_authenticated):
+            return []
+        try:
+            ot = ObjectType.objects.get_for_model(Subscription)
+        except Exception:
+            return []
+        perms = ObjectPermission.objects.filter(
+            enabled=True,
+            users=user,
+            actions__contains=[action],
+            object_types=ot,
+        )
+        constraints = []
+        for p in perms:
+            constraints.extend(p.list_constraints())
+        return constraints
+
+    def get_queryset(self):
+        qs = Subscription.objects.all()
+        user = getattr(self.request, 'user', None)
+        method = getattr(self.request, 'method', 'GET')
+        if method in ('GET', 'HEAD', 'OPTIONS'):
+            view_perm = get_permission_for_model(Subscription, 'view')
+            if permission_is_exempt(view_perm):
+                return qs
+            constraints = self._explicit_constraints(user, 'view')
+            if not constraints:
+                return qs.none()
+            q = qs_filter_from_constraints(constraints, tokens={'$user': user})
+            return qs.filter(q)
+        return qs
+
+    def retrieve(self, request, *args, **kwargs):
+        view_perm = get_permission_for_model(Subscription, 'view')
+        if not permission_is_exempt(view_perm) and not self._explicit_constraints(request.user, 'view'):
+            raise PermissionDenied()
+        return super().retrieve(request, *args, **kwargs)
+
+    def list(self, request, *args, **kwargs):
+        view_perm = get_permission_for_model(Subscription, 'view')
+        if not permission_is_exempt(view_perm) and not self._explicit_constraints(request.user, 'view'):
+            raise PermissionDenied()
+        return super().list(request, *args, **kwargs)
+
+    def update(self, request, *args, **kwargs):
+        if not self._explicit_constraints(request.user, 'change'):
+            raise PermissionDenied()
+        return super().update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        if not self._explicit_constraints(request.user, 'delete'):
+            raise PermissionDenied()
+        return super().destroy(request, *args, **kwargs)
 
 
 #

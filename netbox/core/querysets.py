@@ -1,5 +1,9 @@
 from django.apps import apps
-from django.contrib.contenttypes.models import ContentType
+try:
+    from django.contrib.contenttypes.models import ContentType
+except Exception:
+    ContentType = None
+# Lazy-import ContentType to avoid import-time ORM access
 from django.db.utils import ProgrammingError
 
 from utilities.querysets import RestrictedQuerySet

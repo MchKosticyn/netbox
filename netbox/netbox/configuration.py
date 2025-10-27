@@ -8,19 +8,16 @@
 # access to the server via any other hostnames. The first FQDN in the list will be treated as the preferred name.
 #
 # Example: ALLOWED_HOSTS = ['netbox.example.com', 'netbox.internal.local']
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0']
 
 # PostgreSQL database configuration. See the Django documentation for a complete list of available parameters:
 #   https://docs.djangoproject.com/en/stable/ref/settings/#databases
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',  # Database engine
-        'NAME': 'netbox',         # Database name
-        'USER': '',               # PostgreSQL username
-        'PASSWORD': '',           # PostgreSQL password
-        'HOST': 'localhost',      # Database server
-        'PORT': '',               # Database port (leave blank for default)
-        'CONN_MAX_AGE': 300,      # Max database connection age
+        'ENGINE': 'django.db.backends.sqlite3',  # Use SQLite in-memory for this environment
+        'NAME': ':memory:',                      # In-memory SQLite database
+        # Note: NetBox expects PostgreSQL; using SQLite in-memory may cause failures.
+        'CONN_MAX_AGE': 0,
     }
 }
 
@@ -66,7 +63,7 @@ REDIS = {
 # For optimal security, SECRET_KEY should be at least 50 characters in length and contain a mix of letters, numbers, and
 # symbols. NetBox will not run without this defined. For more information, see
 # https://docs.djangoproject.com/en/stable/ref/settings/#std:setting-SECRET_KEY
-SECRET_KEY = ''
+SECRET_KEY = 'Vxf&lm*jves-lO*$b8MCXY(648xnXNYeYCLV%KmE3N0jvRzeiK'
 
 
 #########################
@@ -179,8 +176,8 @@ LOGOUT_REDIRECT_URL = 'home'
 # Expose Prometheus monitoring metrics at the HTTP endpoint '/metrics'
 METRICS_ENABLED = False
 
-# Enable installed plugins. Add the name of each plugin to the list.
-PLUGINS = []
+# Enable installed plugins for tests; include dummy plugin to exercise plugin hooks
+PLUGINS = ['netbox.tests.dummy_plugin']
 
 # Plugins configuration settings. These settings are used by various plugins that the user may have installed.
 # Each key in the dictionary is the name of an installed plugin and its value is a dictionary of settings.

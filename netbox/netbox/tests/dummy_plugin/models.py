@@ -12,8 +12,10 @@ class DummyModel(models.Model):
     )
 
     class Meta:
+        app_label = 'dummy_plugin'  # Make model constructible outside INSTALLED_APPS for tests
         ordering = ['name']
 
 
 class DummyNetBoxModel(NetBoxModel):
-    pass
+    class Meta:
+        app_label = 'dummy_plugin'  # Same as above to satisfy model base registration

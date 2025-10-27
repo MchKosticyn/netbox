@@ -11,36 +11,36 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='ikepolicy',
             name='name',
-            field=models.CharField(db_collation='natural_sort', max_length=100, unique=True),
+            field=models.CharField(max_length=100, unique=True),
         ),
         migrations.AlterField(
             model_name='ikeproposal',
             name='name',
-            field=models.CharField(db_collation='natural_sort', max_length=100, unique=True),
+            field=models.CharField(max_length=100, unique=True),
         ),
         migrations.AlterField(
             model_name='ipsecpolicy',
             name='name',
-            field=models.CharField(db_collation='natural_sort', max_length=100, unique=True),
+            field=models.CharField(max_length=100, unique=True),
         ),
         migrations.AlterField(
             model_name='ipsecprofile',
             name='name',
-            field=models.CharField(db_collation='natural_sort', max_length=100, unique=True),
+            field=models.CharField(max_length=100, unique=True),
         ),
         migrations.AlterField(
             model_name='ipsecproposal',
             name='name',
-            field=models.CharField(db_collation='natural_sort', max_length=100, unique=True),
+            field=models.CharField(max_length=100, unique=True),
         ),
         migrations.AlterField(
             model_name='l2vpn',
             name='name',
-            field=models.CharField(db_collation='natural_sort', max_length=100, unique=True),
+            field=models.CharField(max_length=100, unique=True),
         ),
         migrations.AlterField(
             model_name='tunnel',
             name='name',
-            field=models.CharField(db_collation='natural_sort', max_length=100, unique=True),
+            field=models.CharField(max_length=100, unique=True),
         ),
     ]

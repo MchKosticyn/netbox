@@ -5,7 +5,30 @@ from datetime import timedelta
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.functional import classproperty
 from django.utils import timezone
-from django_pglocks import advisory_lock
+from django.db import connection
+# SQLite compatibility: wrap django_pglocks.advisory_lock to be a no-op on SQLite
+try:
+    from django_pglocks import advisory_lock as _pg_advisory_lock
+except Exception:  # pragma: no cover
+    _pg_advisory_lock = None
+
+class _NoopLock:
+    def __init__(self, key):
+        self.key = key
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc, tb):
+        return False
+    def __call__(self, func):
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+        return wrapper
+
+def advisory_lock(key):
+    if connection.vendor == 'sqlite' or _pg_advisory_lock is None:
+        return _NoopLock(key)
+    return _pg_advisory_lock(key)
+
 from rq.timeouts import JobTimeoutException
 
 from core.choices import JobStatusChoices

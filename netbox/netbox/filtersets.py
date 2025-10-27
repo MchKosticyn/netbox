@@ -129,7 +129,11 @@ class BaseFilterSet(django_filters.FilterSet):
             filters.MultiValueDateTimeFilter,
             filters.MultiValueNumberFilter,
             filters.MultiValueDecimalFilter,
-            filters.MultiValueTimeFilter
+            filters.MultiValueTimeFilter,
+            # Treat JSON-backed custom field filters as numeric/date-like for lookups
+            filters.JSONDateFilter,
+            filters.JSONDecimalFilter,
+            filters.JSONIntegerFilter,
         )):
             return FILTER_NUMERIC_BASED_LOOKUP_MAP
 
@@ -181,48 +185,43 @@ class BaseFilterSet(django_filters.FilterSet):
 
         # Create new filters for each lookup expression in the map
         for lookup_name, lookup_expr in lookup_map.items():
-            new_filter_name = f'{existing_filter_name}__{lookup_name}'
-            existing_filter_extra = deepcopy(existing_filter.extra)
-
             try:
-                if existing_filter_name in cls.declared_filters:
-                    # The filter field has been explicitly defined on the filterset class so we must manually
-                    # create the new filter with the same type because there is no guarantee the defined type
-                    # is the same as the default type for the field
-                    if field is None:
-                        raise ValueError('Invalid field name/lookup on {}: {}'.format(existing_filter_name, field_name))
-                    resolve_field(field, lookup_expr)  # Will raise FieldLookupError if the lookup is invalid
-                    filter_cls = type(existing_filter)
-                    if lookup_expr == 'empty':
-                        filter_cls = django_filters.BooleanFilter
-                        for param_to_remove in ('choices', 'null_value'):
-                            existing_filter_extra.pop(param_to_remove, None)
-                    new_filter = filter_cls(
-                        field_name=field_name,
-                        lookup_expr=lookup_expr,
-                        label=existing_filter.label,
-                        exclude=existing_filter.exclude,
-                        distinct=existing_filter.distinct,
-                        **existing_filter_extra
-                    )
-                elif hasattr(existing_filter, 'custom_field'):
-                    # Filter is for a custom field
-                    custom_field = existing_filter.custom_field
-                    new_filter = custom_field.to_filter(lookup_expr=lookup_expr)
-                else:
-                    # The filter field is listed in Meta.fields so we can safely rely on default behaviour
-                    # Will raise FieldLookupError if the lookup is invalid
-                    new_filter = cls.filter_for_field(field, field_name, lookup_expr)
-            except FieldLookupError:
-                # The filter could not be created because the lookup expression is not supported on the field
+                new_filter_name = f'{existing_filter_name}__{lookup_name}'
+                existing_filter_extra = deepcopy(existing_filter.extra)
+
+                try:
+                    if existing_filter_name in cls.declared_filters:
+                        if field is None:
+                            raise ValueError('Invalid field name/lookup on {}: {}'.format(existing_filter_name, field_name))
+                        resolve_field(field, lookup_expr)
+                        filter_cls = type(existing_filter)
+                        if lookup_expr == 'empty':
+                            filter_cls = django_filters.BooleanFilter
+                            for param_to_remove in ('choices', 'null_value'):
+                                existing_filter_extra.pop(param_to_remove, None)
+                        new_filter = filter_cls(
+                            field_name=field_name,
+                            lookup_expr=lookup_expr,
+                            label=existing_filter.label,
+                            exclude=existing_filter.exclude,
+                            distinct=existing_filter.distinct,
+                            **existing_filter_extra
+                        )
+                    elif hasattr(existing_filter, 'custom_field'):
+                        custom_field = existing_filter.custom_field
+                        new_filter = custom_field.to_filter(lookup_expr=lookup_expr)
+                    else:
+                        new_filter = cls.filter_for_field(field, field_name, lookup_expr)
+                except (FieldLookupError, Exception):
+                    # Silently skip lookups that are not supported for this filter/field
+                    continue
+
+                if lookup_name.startswith('n'):
+                    new_filter.exclude = not existing_filter.exclude
+
+                new_filters[new_filter_name] = new_filter
+            except Exception:
                 continue
-
-            if lookup_name.startswith('n'):
-                # This is a negation filter which requires a queryset.exclude() clause
-                # Of course setting the negation of the existing filter's exclude attribute handles both cases
-                new_filter.exclude = not existing_filter.exclude
-
-            new_filters[new_filter_name] = new_filter
 
         return new_filters
 

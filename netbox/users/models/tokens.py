@@ -2,9 +2,10 @@ import binascii
 import os
 
 from django.conf import settings
-from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MinLengthValidator
 from django.db import models
+# Replace ArrayField with JSONField alias for SQLite
+ArrayField = models.JSONField
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -58,8 +59,7 @@ class Token(models.Model):
         max_length=200,
         blank=True
     )
-    allowed_ips = ArrayField(
-        base_field=IPNetworkField(),
+    allowed_ips = models.JSONField(
         blank=True,
         null=True,
         verbose_name=_('allowed IPs'),

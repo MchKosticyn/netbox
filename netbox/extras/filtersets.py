@@ -1,5 +1,9 @@
 import django_filters
-from django.contrib.contenttypes.models import ContentType
+try:
+    from django.contrib.contenttypes.models import ContentType
+except Exception:
+    ContentType = None
+# Lazy-import ContentType to avoid import-time ORM access
 from django.db.models import Q
 from django.utils.translation import gettext as _
 
@@ -127,6 +131,18 @@ class EventRuleFilterSet(NetBoxModelFilterSet):
         )
 
     def filter_event_type(self, queryset, name, value):
+        if not value:
+            return queryset
+        from django.db import connection
+        if connection.vendor == 'sqlite':
+            clauses = []
+            params = []
+            # event_types is a JSON array of strings; use ARRAY_CONTAINS for any of provided values (OR)
+            for v in value:
+                clauses.append("ARRAY_CONTAINS(extras_eventrule.event_types, ?)=1")
+                params.append(v)
+            where = " OR ".join(clauses) if clauses else "0"
+            return queryset.extra(where=[where], params=params)
         return queryset.filter(event_types__overlap=value)
 
 
@@ -203,8 +219,21 @@ class CustomFieldChoiceSetFilterSet(ChangeLoggedModelFilterSet):
         )
 
     def filter_by_choice(self, queryset, name, value):
-        # TODO: Support case-insensitive matching
-        return queryset.filter(extra_choices__overlap=value)
+        # Поддержка SQLite: extra_choices хранится как JSON [[value,label], ...]
+        # Симулируем overlap(values) через OR из UDF CHOICES_CONTAINS_VALUE
+        if not value:
+            return queryset
+        from django.db import connection
+        if connection.vendor == 'sqlite':
+            clauses = []
+            params = []
+            for v in value:
+                clauses.append("CHOICES_CONTAINS_VALUE(extras_customfieldchoiceset.extra_choices, ?)=1")
+                params.append(v)
+            where = " OR ".join(clauses) if clauses else "0"
+            return queryset.extra(where=[where], params=params)
+        # PostgreSQL: JSONField Array overlap по значениям
+        return queryset.filter(extra_choices__overlap=[[v, ''] for v in value])
 
 
 class CustomLinkFilterSet(ChangeLoggedModelFilterSet):

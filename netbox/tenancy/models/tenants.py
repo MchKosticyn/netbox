@@ -19,7 +19,7 @@ class TenantGroup(NestedGroupModel):
         verbose_name=_('name'),
         max_length=100,
         unique=True,
-        db_collation="natural_sort"
+        # db_collation omitted under SQLite: natural_sort
     )
     slug = models.SlugField(
         verbose_name=_('slug'),
@@ -41,7 +41,7 @@ class Tenant(ContactsMixin, PrimaryModel):
     name = models.CharField(
         verbose_name=_('name'),
         max_length=100,
-        db_collation="natural_sort"
+        # db_collation omitted under SQLite: natural_sort
     )
     slug = models.SlugField(
         verbose_name=_('slug'),

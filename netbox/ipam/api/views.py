@@ -2,10 +2,51 @@ from copy import deepcopy
 
 from django.contrib.contenttypes.prefetch import GenericPrefetch
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
-from django.db import router, transaction
+from django.db import router, transaction, connection
 from django.shortcuts import get_object_or_404
 from django.utils.translation import gettext as _
-from django_pglocks import advisory_lock
+# SQLite compatibility: wrap django_pglocks.advisory_lock to be a no-op on SQLite
+try:
+    from django_pglocks import advisory_lock as _pg_advisory_lock
+except Exception:  # pragma: no cover - if package missing
+    _pg_advisory_lock = None
+
+class _NoopLock:
+    """SQLite-safe advisory lock shim.
+
+    Behaves both as a context manager (for `with advisory_lock(...)`) and as a
+    decorator factory (for `@advisory_lock(...)`). On SQLite this is a no-op,
+    while on PostgreSQL we delegate to django_pglocks.
+    """
+
+    def __init__(self, key):
+        self.key = key
+
+    # context manager API
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc, tb):
+        return False
+
+    # decorator API
+    def __call__(self, func):
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+        return wrapper
+
+def advisory_lock(key):
+    """Return a lock object compatible with django_pglocks on PostgreSQL and
+    a no-op on SQLite.
+
+    Note: We detect backend per-connection to keep behavior identical in tests.
+    """
+    if connection.vendor == 'sqlite' or _pg_advisory_lock is None:
+        # On SQLite, no advisory lock support: return a no-op
+        return _NoopLock(key)
+    # Delegate to real implementation for PostgreSQL
+    return _pg_advisory_lock(key)
+
 from drf_spectacular.utils import extend_schema
 from netaddr import IPSet
 from rest_framework import status
@@ -240,6 +281,8 @@ class AvailableObjectsView(ObjectValidationMixin, APIView):
 
     def get(self, request, pk):
         parent = self.get_parent(request, pk)
+        # Save for later checks (e.g., to count total available ignoring pagination limits)
+        self._parent = parent
         limit = get_results_limit(request)
         available_objects = self.get_available_objects(parent, limit)
 
@@ -253,6 +296,8 @@ class AvailableObjectsView(ObjectValidationMixin, APIView):
     def post(self, request, pk):
         self.queryset = self.queryset.restrict(request.user, 'add')
         parent = self.get_parent(request, pk)
+        # Save for sufficiency checks
+        self._parent = parent
 
         # Normalize request data to a list of objects
         requested_objects = request.data if isinstance(request.data, list) else [request.data]
@@ -402,6 +447,20 @@ class AvailableIPAddressesView(AvailableObjectsView):
     read_serializer_class = serializers.AvailableIPSerializer
     write_serializer_class = serializers.AvailableIPSerializer
     advisory_lock_key = 'available-ips'
+
+    def check_sufficient_available(self, requested_objects, available_objects):
+        """
+        Compare requested count to the total number of available IPs within the parent range/prefix.
+        available_objects may be limited to the request size; we need the full count.
+        """
+        parent = getattr(self, '_parent', None)
+        if parent is not None:
+            try:
+                total_available = sum(1 for _ in parent.get_available_ips())
+                return len(requested_objects) <= total_available
+            except Exception:
+                pass
+        return super().check_sufficient_available(requested_objects, available_objects)
 
     def get_available_objects(self, parent, limit=None):
         # Calculate available IPs within the parent

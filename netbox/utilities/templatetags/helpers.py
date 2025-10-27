@@ -379,14 +379,18 @@ def querystring(request, **kwargs):
 def utilization_graph(utilization, warning_threshold=75, danger_threshold=90):
     """
     Display a horizontal bar graph indicating a percentage of utilization.
+    Accepts None and treats it as 0.
     """
+    utilization = utilization or 0
+    warning_threshold = warning_threshold or 0
+    danger_threshold = danger_threshold or 0
     if utilization == 100:
         bar_class = 'bg-secondary'
-    elif danger_threshold and utilization >= danger_threshold:
+    elif utilization >= danger_threshold > 0:
         bar_class = 'bg-danger'
-    elif warning_threshold and utilization >= warning_threshold:
+    elif utilization >= warning_threshold > 0:
         bar_class = 'bg-warning'
-    elif warning_threshold or danger_threshold:
+    elif warning_threshold > 0 or danger_threshold > 0:
         bar_class = 'bg-success'
     else:
         bar_class = 'bg-gray'

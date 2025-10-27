@@ -301,8 +301,15 @@ class VLANType(NetBoxObjectType):
 class VLANGroupType(OrganizationalObjectType):
 
     vlans: List[VLANType]
-    vid_ranges: List[str]
     tenant: Annotated["TenantType", strawberry.lazy('tenancy.graphql.types')] | None
+
+    @strawberry_django.field
+    def vid_ranges(self) -> List[str]:
+        # SQLite stores vid_ranges as JSON list of dicts; expose GraphQL as list of strings
+        from utilities.data import ranges_to_string_list
+        # VLANGroup model provides helper to coerce to objects
+        ranges = getattr(self, '_vid_ranges_as_objects', lambda: self.vid_ranges)()
+        return ranges_to_string_list(ranges)
 
     @strawberry_django.field
     def scope(self) -> Annotated[Union[

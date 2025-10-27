@@ -1,7 +1,62 @@
 import decimal
+import re
 from itertools import count, groupby
 
-from django.db.backends.postgresql.psycopg_any import NumericRange
+# NumericRange is a Postgres-specific type; provide a lightweight replacement for SQLite
+# TODO: This is a compatibility shim used for SQLite-based tests. If running on PostgreSQL,
+# consider replacing this with the native range type or a more feature-complete implementation.
+class NumericRange:
+    def __init__(self, lower, upper, bounds='[)'):
+        self.lower = int(lower)
+        self.upper = int(upper)
+        self.lower_inc = bounds.startswith('[')
+        self.upper_inc = bounds.endswith(']')
+        self.bounds = bounds
+
+    def __repr__(self):
+        return f"NumericRange({self.lower}, {self.upper}, bounds='{self.bounds}')"
+
+    def __eq__(self, other):
+        if not isinstance(other, NumericRange):
+            return NotImplemented
+        return (
+            self.lower == other.lower and
+            self.upper == other.upper and
+            self.lower_inc == other.lower_inc and
+            self.upper_inc == other.upper_inc
+        )
+
+
+def _coerce_range_like(r):
+    """
+    Normalize a range-like item (NumericRange or dict from JSONField or any object with
+    lower/upper[/bounds|/lower_inc,/upper_inc]) to a tuple:
+    (lower:int, upper:int, lower_inc:bool, upper_inc:bool)
+    """
+    # Direct support for our shim class
+    if isinstance(r, NumericRange):
+        return int(r.lower), int(r.upper), bool(r.lower_inc), bool(r.upper_inc)
+    # Dict from JSONField
+    if isinstance(r, dict):
+        lower = int(r.get('lower')) if r.get('lower') is not None else 0
+        upper = int(r.get('upper')) if r.get('upper') is not None else 0
+        bounds = str(r.get('bounds', '[)'))
+        lower_inc = bounds.startswith('[')
+        upper_inc = bounds.endswith(']')
+        return lower, upper, lower_inc, upper_inc
+    # Duck-typing: any object with lower/upper
+    if hasattr(r, 'lower') and hasattr(r, 'upper'):
+        lower = int(getattr(r, 'lower'))
+        upper = int(getattr(r, 'upper'))
+        if hasattr(r, 'lower_inc') and hasattr(r, 'upper_inc'):
+            lower_inc = bool(getattr(r, 'lower_inc'))
+            upper_inc = bool(getattr(r, 'upper_inc'))
+        else:
+            bounds = str(getattr(r, 'bounds', '[)'))
+            lower_inc = bounds.startswith('[')
+            upper_inc = bounds.endswith(']')
+        return lower, upper, lower_inc, upper_inc
+    raise TypeError(f'Unsupported range-like type: {type(r)!r}')
 
 __all__ = (
     'array_to_ranges',
@@ -23,8 +78,15 @@ __all__ = (
 
 def deepmerge(original, new):
     """
-    Deep merge two dictionaries (new into original) and return a new dict
+    Deep merge two dictionaries (new into original) and return a new dict.
+    Be tolerant to non-dict input: if `new` is not a dict, return a copy of `original` unchanged.
     """
+    # Guard: only merge dicts; anything else is ignored to keep callers resilient to bad data
+    if type(new) is not dict:
+        try:
+            return dict(original)
+        except Exception:
+            return {}
     merged = dict(original)
     for key, val in new.items():
         if key in original and isinstance(original[key], dict) and val and isinstance(val, dict):
@@ -77,11 +139,37 @@ def array_to_ranges(array):
     Convert an arbitrary array of integers to a list of consecutive values. Nonconsecutive values are returned as
     single-item tuples.
 
+    Accepts a scalar (int/str) or an iterable; gracefully handles None.
+
     Example:
         [0, 1, 2, 10, 14, 15, 16] => [(0, 2), (10,), (14, 16)]
     """
+    # Normalize input to a list of ints
+    values: list[int]
+    if array is None:
+        values = []
+    elif isinstance(array, (list, tuple, set)):
+        values = [int(v) for v in array]
+    elif isinstance(array, str):
+        # Try to split by comma/whitespace; fall back to single int
+        parts = [p for p in re.split(r"[\s,]+", array) if p]
+        if len(parts) > 1:
+            values = [int(p) for p in parts]
+        else:
+            values = [int(array)]
+    else:
+        # Scalar number or any other type convertible to int
+        try:
+            values = [int(array)]
+        except Exception:
+            values = []
+
+    if not values:
+        return []
+
+    # Sort and group consecutive values
     group = (
-        list(x) for _, x in groupby(sorted(array), lambda x, c=count(): next(c) - x)
+        list(x) for _, x in groupby(sorted(values), lambda x, c=count(): next(c) - x)
     )
     return [
         (g[0], g[-1])[:len(g)] for g in group
@@ -126,17 +214,40 @@ def drange(start, end, step=decimal.Decimal(1)):
 
 def check_ranges_overlap(ranges):
     """
-    Check for overlap in an iterable of NumericRanges.
+    Check for overlap in an iterable of range-like objects using half-open semantics.
+
+    Accepts either NumericRange instances or dicts with keys lower/upper/bounds
+    (as produced by JSONField under SQLite). Treat each range as
+    [lower_inclusive, upper_exclusive). Two ranges overlap if
+    prev_upper_exclusive > curr_lower_inclusive after sorting by lower.
     """
-    ranges.sort(key=lambda x: x.lower)
+    if not ranges:
+        return False
 
-    for i in range(1, len(ranges)):
-        prev_range = ranges[i - 1]
-        prev_upper = prev_range.upper if prev_range.upper_inc else prev_range.upper - 1
-        lower = ranges[i].lower if ranges[i].lower_inc else ranges[i].lower + 1
-        if prev_upper >= lower:
+    # Coerce to comparable tuples without mutating originals
+    coerced = [
+        _coerce_range_like(r) for r in ranges
+    ]
+
+    def lower_inclusive(t):
+        lower, _upper, lower_inc, _upper_inc = t
+        return lower if lower_inc else lower + 1
+
+    def upper_exclusive(t):
+        _lower, upper, _lower_inc, upper_inc = t
+        return upper + 1 if upper_inc else upper
+
+    coerced.sort(key=lambda t: (lower_inclusive(t), t[1]))
+
+    prev_upper_ex = upper_exclusive(coerced[0])
+    for t in coerced[1:]:
+        curr_lower_in = lower_inclusive(t)
+        if prev_upper_ex > curr_lower_in:
             return True
-
+        # track farthest upper to catch nested overlaps
+        t_upper_ex = upper_exclusive(t)
+        if t_upper_ex > prev_upper_ex:
+            prev_upper_ex = t_upper_ex
     return False
 
 
@@ -144,6 +255,7 @@ def ranges_to_string_list(ranges):
     """
     Convert numeric ranges to a list of display strings.
 
+    Accepts NumericRange objects or dicts with lower/upper/bounds.
     Each range is rendered as "lower-upper" or "lower" (for singletons).
     Bounds are normalized to inclusive values using ``lower_inc``/``upper_inc``.
     This underpins ``ranges_to_string()``, which joins the result with commas.
@@ -156,10 +268,11 @@ def ranges_to_string_list(ranges):
 
     output: list[str] = []
     for r in ranges:
+        lower, upper, lower_inc, upper_inc = _coerce_range_like(r)
         # Compute inclusive bounds regardless of how the DB range is stored.
-        lower = r.lower if r.lower_inc else r.lower + 1
-        upper = r.upper if r.upper_inc else r.upper - 1
-        output.append(f"{lower}-{upper}" if lower != upper else str(lower))
+        lower_inc_v = lower if lower_inc else lower + 1
+        upper_inc_v = upper if upper_inc else upper - 1
+        output.append(f"{lower_inc_v}-{upper_inc_v}" if lower_inc_v != upper_inc_v else str(lower_inc_v))
     return output
 
 

@@ -1,6 +1,7 @@
 from django.contrib.contenttypes.fields import GenericRelation
 from django.core.exceptions import ValidationError
 from django.db import models
+from utilities.query_functions import CollateNatural
 from django.utils.translation import gettext_lazy as _
 from timezone_field import TimeZoneField
 
@@ -143,7 +144,7 @@ class Site(ContactsMixin, ImageAttachmentsMixin, PrimaryModel):
         max_length=100,
         unique=True,
         help_text=_("Full name of the site"),
-        db_collation="natural_sort"
+        # db_collation omitted under SQLite: natural_sort
     )
     slug = models.SlugField(
         verbose_name=_('slug'),
@@ -241,7 +242,8 @@ class Site(ContactsMixin, ImageAttachmentsMixin, PrimaryModel):
     )
 
     class Meta:
-        ordering = ('name',)
+        # Apply natural_sort collation for human-friendly ordering on SQLite
+        ordering = (CollateNatural('name'),) if 'CollateNatural' in globals() else ('name',)
         verbose_name = _('site')
         verbose_name_plural = _('sites')
 

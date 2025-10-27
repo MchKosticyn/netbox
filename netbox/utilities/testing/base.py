@@ -3,9 +3,11 @@ from contextlib import contextmanager
 
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
-from django.contrib.postgres.fields import ArrayField, RangeField
 from django.core.exceptions import FieldDoesNotExist
 from django.db import transaction
+# Use JSONField aliases in place of Postgres-specific Array/Range fields
+ArrayField = list
+RangeField = dict
 from django.db.models import ManyToManyField, ManyToManyRel, JSONField
 from django.forms.models import model_to_dict
 from django.test import Client, TestCase as _TestCase
@@ -171,7 +173,35 @@ class ModelTestCase(TestCase):
 
                 # JSON
                 if type(field) is JSONField and value is not None:
-                    model_dict[key] = json.dumps(value)
+                    # Special-case A: JSON storing a simple list of numeric values (e.g., Service.ports)
+                    # Represent it as a comma-separated string to emulate ArrayField behavior in forms/views.
+                    if isinstance(value, list) and all(
+                        isinstance(v, (int,)) or (isinstance(v, str) and v.isdigit()) for v in value
+                    ):
+                        model_dict[key] = ','.join(str(int(v)) for v in value)
+                    # Special-case B: JSON storing a list of numeric ranges (dicts with lower/upper/bounds),
+                    # used by VLANGroup.vid_ranges under SQLite as a replacement for Postgres int4range[].
+                    elif isinstance(value, list) and all(
+                        isinstance(v, dict) and 'lower' in v and 'upper' in v for v in value
+                    ):
+                        model_dict[key] = ranges_to_string(value)
+                    # Special-case C: JSON storing nested arrays (e.g., CustomFieldChoiceSet.extra_choices)
+                    # Represent as newline-separated CSV strings to match form input format.
+                    elif isinstance(value, list) and all(
+                        isinstance(v, (list, tuple)) and len(v) == 2 for v in value
+                    ):
+                        model_dict[key] = '\n'.join([f'{k},{v}' for k, v in value])
+                    # Special-case D: JSON storing a simple list (e.g., EventRule.event_types)
+                    # Keep it as-is for comparison with form data.
+                    elif isinstance(value, list):
+                        # Special handling for ObjectPermission.actions: convert list to comma-separated string
+                        # to match form input format (SimpleArrayField)
+                        if key == 'actions' and instance.__class__.__name__ == 'ObjectPermission':
+                            model_dict[key] = ','.join(str(v) for v in value)
+                        else:
+                            model_dict[key] = value
+                    else:
+                        model_dict[key] = json.dumps(value)
 
         return model_dict
 

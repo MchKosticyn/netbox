@@ -8,22 +8,37 @@ from .models import IPAddress, Prefix
 
 def update_parents_children(prefix):
     """
-    Update depth on prefix & containing prefixes
+    Update children count on each parent (including self) in a SQLite-compatible way.
     """
-    parents = prefix.get_parents(include_self=True).annotate_hierarchy()
+    parents = list(prefix.get_parents(include_self=True))
     for parent in parents:
-        parent._children = parent.hierarchy_children
-    Prefix.objects.bulk_update(parents, ['_children'], batch_size=100)
+        # Children count should include duplicates
+        parent._children = Prefix.objects.filter(
+            vrf=parent.vrf,
+            prefix__net_contained=parent.prefix,
+        ).count()
+    if parents:
+        Prefix.objects.bulk_update(parents, ['_children'], batch_size=100)
 
 
 def update_children_depth(prefix):
     """
-    Update children count on prefix & contained prefixes
+    Update depth for each child (including self): number of parents that strictly contain it.
     """
-    children = prefix.get_children(include_self=True).annotate_hierarchy()
+    children = list(prefix.get_children(include_self=True))
     for child in children:
-        child._depth = child.hierarchy_depth
-    Prefix.objects.bulk_update(children, ['_depth'], batch_size=100)
+        # Depth should count distinct parent prefixes by network (ignore duplicates)
+        child._depth = (
+            Prefix.objects.filter(
+                vrf=child.vrf,
+                prefix__net_contains=child.prefix,
+            )
+            .values('prefix')
+            .distinct()
+            .count()
+        )
+    if children:
+        Prefix.objects.bulk_update(children, ['_depth'], batch_size=100)
 
 
 @receiver(post_save, sender=Prefix)

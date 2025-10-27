@@ -1,7 +1,10 @@
-from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
+
+# Pure SQLite: no Postgres ArrayField
+PostgresArrayField = None
+HAS_PG_ARRAY = False
 
 from netbox.models.features import CloningMixin
 from utilities.querysets import RestrictedQuerySet
@@ -33,9 +36,10 @@ class ObjectPermission(CloningMixin, models.Model):
         to='contenttypes.ContentType',
         related_name='object_permissions'
     )
-    actions = ArrayField(
-        base_field=models.CharField(max_length=30),
-        help_text=_("The list of actions granted by this permission")
+    # SQLite-only: JSON list for actions
+    actions = models.JSONField(
+        default=list,
+        help_text=_("The list of actions granted by this permission"),
     )
     constraints = models.JSONField(
         blank=True,

@@ -19,7 +19,7 @@ class VRF(PrimaryModel):
     name = models.CharField(
         verbose_name=_('name'),
         max_length=100,
-        db_collation="natural_sort"
+        # db_collation omitted under SQLite: natural_sort
     )
     rd = models.CharField(
         max_length=VRF_RD_MAX_LENGTH,
@@ -76,7 +76,7 @@ class RouteTarget(PrimaryModel):
         max_length=VRF_RD_MAX_LENGTH,  # Same format options as VRF RD (RFC 4360 section 4)
         unique=True,
         help_text=_('Route target value (formatted in accordance with RFC 4360)'),
-        db_collation="natural_sort"
+        # db_collation omitted under SQLite: natural_sort
     )
     tenant = models.ForeignKey(
         to='tenancy.Tenant',

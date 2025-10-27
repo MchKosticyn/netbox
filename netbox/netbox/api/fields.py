@@ -1,5 +1,15 @@
 from django.core.exceptions import ObjectDoesNotExist
-from django.db.backends.postgresql.psycopg_any import NumericRange
+try:
+    from utilities.data import NumericRange
+except Exception:
+    # Fallback shim if utilities.data isn't importable during migrations/tests
+    class NumericRange:
+        def __init__(self, lower, upper, bounds='[]'):
+            self.lower = int(lower)
+            self.upper = int(upper)
+            self.lower_inc = bounds.startswith('[')
+            self.upper_inc = bounds.endswith(']')
+# TODO: Replace with the real utilities.data.NumericRange when available
 from django.utils.translation import gettext as _
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
@@ -172,6 +182,17 @@ class IntegerRangeSerializer(serializers.Serializer):
         return NumericRange(data[0], data[1] + 1, bounds='[)')
 
     def to_representation(self, instance):
+        # Support both NumericRange-like objects and JSON dicts persisted in SQLite
+        if isinstance(instance, dict):
+            lower = int(instance.get('lower'))
+            upper = int(instance.get('upper'))
+            bounds = instance.get('bounds', '[)')
+            lower_inc = str(bounds).startswith('[')
+            upper_inc = str(bounds).endswith(']')
+            disp_lower = lower if lower_inc else lower + 1
+            disp_upper = upper if upper_inc else upper - 1
+            return disp_lower, disp_upper
+        # Fallback to object with attributes
         return instance.lower, instance.upper - 1
 
 

@@ -1,5 +1,4 @@
 from django import forms
-from django.contrib.contenttypes.models import ContentType
 from django.utils.translation import gettext_lazy as _
 
 from dcim.models import Device, Interface, Site
@@ -447,7 +446,7 @@ class FHRPGroupImportForm(NetBoxModelImportForm):
 class VLANGroupImportForm(NetBoxModelImportForm):
     slug = SlugField()
     scope_type = CSVContentTypeField(
-        queryset=ContentType.objects.filter(model__in=VLANGROUP_SCOPE_TYPES),
+        queryset=__import__('django.contrib.contenttypes.models', fromlist=['ContentType']).ContentType.objects.filter(model__in=VLANGROUP_SCOPE_TYPES),
         required=False,
         label=_('Scope type (app & model)')
     )
@@ -560,7 +559,7 @@ class ServiceTemplateImportForm(NetBoxModelImportForm):
 
 class ServiceImportForm(NetBoxModelImportForm):
     parent_object_type = CSVContentTypeField(
-        queryset=ContentType.objects.filter(SERVICE_ASSIGNMENT_MODELS),
+        queryset=__import__('django.contrib.contenttypes.models', fromlist=['ContentType']).ContentType.objects.filter(SERVICE_ASSIGNMENT_MODELS),
         required=True,
         label=_('Parent type (app & model)')
     )

@@ -237,13 +237,66 @@ class ConfigContextModel(models.Model):
 
         if not hasattr(self, 'config_context_data'):
             # The annotation is not available, so we fall back to manually querying for the config context objects
-            config_context_data = ConfigContext.objects.get_for_object(self, aggregate_data=True) or []
+            from django.db import connection as _conn
+            if getattr(_conn, 'vendor', None) == 'sqlite':
+                # Надёжно: берём упорядоченный queryset и извлекаем data
+                qs = ConfigContext.objects.get_for_object(self, aggregate_data=False) or []
+                config_context_data = list(qs.values_list('data', flat=True)) if hasattr(qs, 'values_list') else list(qs)
+            else:
+                config_context_data = ConfigContext.objects.get_for_object(self, aggregate_data=True) or []
         else:
-            # The attribute may exist, but the annotated value could be None if there is no config context data
+            # The attribute may exist, but the annotated value could be None/empty; start with its value
             config_context_data = self.config_context_data or []
 
+        # SQLite json_group_array() may return a JSON string; normalize to a Python list BEFORE fallback decisions
+        if isinstance(config_context_data, str):
+            try:
+                import json as _json
+                config_context_data = _json.loads(config_context_data)
+            except Exception:
+                config_context_data = []
+
+        # If still empty, fallback to direct query (handles cases where annotation produced an empty JSON string)
+        if not config_context_data:
+            from django.db import connection as _conn
+            if getattr(_conn, 'vendor', None) == 'sqlite':
+                qs = ConfigContext.objects.get_for_object(self, aggregate_data=False) or []
+                config_context_data = list(qs.values_list('data', flat=True)) if hasattr(qs, 'values_list') else list(qs)
+            else:
+                config_context_data = ConfigContext.objects.get_for_object(self, aggregate_data=True) or []
+
+        # Поддержка двух форматов элементов:
+        # 1) чистые dict-объекты конфигов
+        # 2) объекты вида {'w': weight, 'n': name, 'd': data}, которые нужно отсортировать по (w desc, n)
+        items = []
         for context in config_context_data:
-            data = deepmerge(data, context)
+            # Normalize stringified JSON elements produced by SQLite json_group_array
+            if not isinstance(context, dict):
+                if isinstance(context, str):
+                    try:
+                        import json as _json
+                        context = _json.loads(context)
+                    except Exception:
+                        continue
+                else:
+                    continue
+            if 'd' in context and ('w' in context and 'n' in context):
+                items.append(context)
+            else:
+                # Treat as plain data with implicit lowest priority
+                items.append({'w': -10**9, 'n': '', 'd': context})
+        # Sort by weight asc, then name asc so that higher weights are merged last (override lower weights)
+        items.sort(key=lambda x: (int(x.get('w') or 0), str(x.get('n') or '')))
+        for item in items:
+            value = item.get('d', {})
+            if isinstance(value, str):
+                try:
+                    import json as _json
+                    value = _json.loads(value)
+                except Exception:
+                    value = {}
+            if isinstance(value, dict):
+                data = deepmerge(data, value)
 
         # If the object has local config context data defined, merge it last
         if self.local_context_data:

@@ -1,7 +1,11 @@
 import django_filters
 import netaddr
 from dcim.base_filtersets import ScopedFilterSet
-from django.contrib.contenttypes.models import ContentType
+try:
+    from django.contrib.contenttypes.models import ContentType
+except Exception:
+    ContentType = None
+# TODO: Lazy-import ContentType to avoid importing ORM at module import time
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils.translation import gettext as _
@@ -523,9 +527,13 @@ class IPRangeFilterSet(TenancyFilterSet, NetBoxModelFilterSet, ContactModelFilte
         if not value:
             return queryset
         try:
-            # Strip mask
-            ipaddress = netaddr.IPNetwork(value)
-            return queryset.filter(start_address__lte=ipaddress, end_address__gte=ipaddress)
+            # Evaluate in Python for SQLite-only build to ensure correctness
+            ip = netaddr.IPAddress(value.split('/')[0])
+            matched_ids = []
+            for rng in queryset.only('id', 'start_address', 'end_address'):
+                if netaddr.IPAddress(rng.start_address.ip) <= ip <= netaddr.IPAddress(rng.end_address.ip):
+                    matched_ids.append(rng.pk)
+            return queryset.filter(pk__in=matched_ids)
         except (AddrFormatError, ValueError):
             return queryset.none()
 
@@ -811,23 +819,17 @@ class FHRPGroupFilterSet(NetBoxModelFilterSet):
     @extend_schema_field(OpenApiTypes.STR)
     def filter_related_ip(self, queryset, name, value):
         """
-        Filter by VRF & prefix of assigned IP addresses.
+        Select groups that have IPs in the same network as provided IPs, honoring VRF when present.
+        Use net_host_contained so mask of the group IP is ignored for host containment.
         """
-        ip_filter = Q()
-        for ipaddress in value:
-            if ipaddress.vrf:
-                q = Q(
-                    ip_addresses__address__net_contained_or_equal=ipaddress.address,
-                    ip_addresses__vrf=ipaddress.vrf
-                )
+        q = Q()
+        for ip in value:
+            network = str(ip.address.cidr)
+            if ip.vrf:
+                q |= Q(ip_addresses__address__net_host_contained=network, ip_addresses__vrf=ip.vrf)
             else:
-                q = Q(
-                    ip_addresses__address__net_contained_or_equal=ipaddress.address,
-                    ip_addresses__vrf__isnull=True
-                )
-            ip_filter |= q
-
-        return queryset.filter(ip_filter)
+                q |= Q(ip_addresses__address__net_host_contained=network, ip_addresses__vrf__isnull=True)
+        return queryset.filter(q).distinct()
 
 
 class FHRPGroupAssignmentFilterSet(ChangeLoggedModelFilterSet):
@@ -907,6 +909,7 @@ class VLANGroupFilterSet(OrganizationalModelFilterSet, TenancyFilterSet):
     cluster = django_filters.NumberFilter(
         method='filter_scope'
     )
+    # Унифицировано: используем ORM-lookup 'range_contains' на JSONField (реализован в extras.lookups)
     contains_vid = django_filters.NumberFilter(
         field_name='vid_ranges',
         lookup_expr='range_contains',

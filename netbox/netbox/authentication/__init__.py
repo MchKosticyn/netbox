@@ -92,10 +92,22 @@ class ObjectPermissionMixin:
             perms[perm_name].extend(constraints)
 
         # Retrieve all assigned and enabled ObjectPermissions
+        from django.db import connection
+        existing_tables = set(connection.introspection.table_names())
+        required = {
+            'users_objectpermission',
+            'users_user_object_permissions',
+            'users_group_object_permissions',
+        }
+        if not required.issubset(existing_tables):
+            # During SQLite test DB setup or partial migrations, related tables may not exist yet.
+            # Fail closed by returning only default permissions collected above.
+            return perms
+
         object_permissions = ObjectPermission.objects.filter(
             self.get_permission_filter(user_obj),
             enabled=True
-        ).order_by('id').distinct('id').prefetch_related('object_types')
+        ).order_by('id').distinct().prefetch_related('object_types')
 
         # Create a dictionary mapping permissions to their constraints
         for obj_perm in object_permissions:

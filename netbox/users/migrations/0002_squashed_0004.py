@@ -1,5 +1,4 @@
 import django.contrib.auth.models
-import django.contrib.postgres.fields
 from django.db import migrations, models
 import ipam.fields
 
@@ -35,9 +34,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='token',
             name='allowed_ips',
-            field=django.contrib.postgres.fields.ArrayField(
-                base_field=ipam.fields.IPNetworkField(), blank=True, null=True, size=None
-            ),
+            field=models.JSONField(blank=True, null=True, default=list, serialize=False),
         ),
         migrations.AddField(
             model_name='token',

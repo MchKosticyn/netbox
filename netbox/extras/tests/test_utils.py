@@ -1,6 +1,7 @@
 from types import SimpleNamespace
 
 from django.contrib.contenttypes.models import ContentType
+# Tests require ContentType to be importable
 from django.test import TestCase
 
 from extras.models import ExportTemplate

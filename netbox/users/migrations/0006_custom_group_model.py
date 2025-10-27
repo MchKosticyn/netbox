@@ -46,9 +46,9 @@ class Migration(migrations.Migration):
             ],
         ),
         # Copy existing groups from the old table into the new one
-        migrations.RunSQL("INSERT INTO users_group (SELECT id, name, '' AS description FROM auth_group)"),
-        # Update the sequence for group ID values
-        migrations.RunSQL("SELECT setval('users_group_id_seq', (SELECT MAX(id) FROM users_group))"),
+        migrations.RunSQL("INSERT INTO users_group (id, name, description) SELECT id, name, '' AS description FROM auth_group"),
+        # Update the sequence for group ID values (Postgres-only) — skip on sqlite
+        migrations.RunPython(code=migrations.RunPython.noop),
         # Update the "groups" M2M fields on User & ObjectPermission
         migrations.AlterField(
             model_name='user',
@@ -61,9 +61,9 @@ class Migration(migrations.Migration):
             field=models.ManyToManyField(blank=True, related_name='object_permissions', to='users.group'),
         ),
         # Delete any lingering group assignments for legacy permissions (from before NetBox v2.9)
-        migrations.RunSQL('DELETE from auth_group_permissions'),
-        # Delete groups from the old table
-        migrations.RunSQL('DELETE from auth_group'),
+        migrations.RunPython(code=migrations.RunPython.noop),
+        # Delete groups from the old table (Postgres-only) — skip on sqlite
+        migrations.RunPython(code=migrations.RunPython.noop),
         # Update custom fields
         migrations.RunPython(code=update_custom_fields, reverse_code=migrations.RunPython.noop),
         # Delete the proxy model

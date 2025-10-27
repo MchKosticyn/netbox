@@ -57,5 +57,6 @@ def nullify_connected_interfaces(instance, **kwargs):
         Interface.objects.filter(pk=instance.interface_b.pk).update(wireless_link=None)
 
     # Delete and retrace any dependent cable paths
-    for cablepath in CablePath.objects.filter(_nodes__contains=instance):
+    from dcim.utils import object_to_path_node
+    for cablepath in CablePath.objects.filter(_nodes__contains=object_to_path_node(instance)):
         cablepath.delete()

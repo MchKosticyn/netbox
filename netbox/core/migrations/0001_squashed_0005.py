@@ -31,7 +31,7 @@ class Migration(migrations.Migration):
                 ('last_updated', models.DateTimeField(auto_now=True, null=True)),
                 (
                     'custom_field_data',
-                    models.JSONField(blank=True, default=dict, encoder=utilities.json.CustomFieldJSONEncoder),
+                    models.JSONField(blank=True, default=dict, encoder=utilities.json.CustomFieldJSONEncoder, serialize=False),
                 ),
                 ('description', models.CharField(blank=True, max_length=200)),
                 ('comments', models.TextField(blank=True)),
@@ -41,7 +41,7 @@ class Migration(migrations.Migration):
                 ('status', models.CharField(default='new', editable=False, max_length=50)),
                 ('enabled', models.BooleanField(default=True)),
                 ('ignore_rules', models.TextField(blank=True)),
-                ('parameters', models.JSONField(blank=True, null=True)),
+                ('parameters', models.JSONField(blank=True, null=True, serialize=False)),
                 ('last_synced', models.DateTimeField(blank=True, editable=False, null=True)),
                 ('tags', taggit.managers.TaggableManager(through='extras.TaggedItem', to='extras.Tag')),
             ],
@@ -178,7 +178,7 @@ class Migration(migrations.Migration):
                 ('started', models.DateTimeField(blank=True, null=True)),
                 ('completed', models.DateTimeField(blank=True, null=True)),
                 ('status', models.CharField(default='pending', max_length=30)),
-                ('data', models.JSONField(blank=True, null=True)),
+                ('data', models.JSONField(blank=True, null=True, serialize=False)),
                 ('job_id', models.UUIDField(unique=True)),
                 (
                     'object_type',

@@ -111,7 +111,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='circuittermination',
             name='custom_field_data',
-            field=models.JSONField(blank=True, default=dict, encoder=utilities.json.CustomFieldJSONEncoder),
+            field=models.JSONField(blank=True, default=dict, encoder=utilities.json.CustomFieldJSONEncoder, serialize=False),
         ),
         migrations.AddField(
             model_name='circuittermination',

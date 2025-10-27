@@ -41,7 +41,7 @@ def generate_signature(request_body, secret):
 
 
 @job('default')
-def send_webhook(event_rule, object_type, event_type, data, timestamp, username, request=None, snapshots=None):
+def send_webhook(event_rule, object_type, event_type, data, timestamp, username, request=None, snapshots=None, **kwargs):
     """
     Make a POST request to the defined Webhook
     """
@@ -66,13 +66,14 @@ def send_webhook(event_rule, object_type, event_type, data, timestamp, username,
     callback_data = {}
     for callback in registry['webhook_callbacks']:
         try:
-            if ret := callback(object_type, event_type, data, request):
+            ret = callback(object_type, event_type, data, request)
+            if isinstance(ret, dict) and ret:
                 callback_data.update(**ret)
         except Exception as e:
             logger.warning(f"Caught exception when processing callback {callback}: {e}")
-            pass
-    if callback_data:
-        context['context'] = callback_data
+            continue
+    # Всегда включаем ключ 'context' для стабильности контрактов тестов/плагинов
+    context['context'] = callback_data
 
     # Build the headers for the HTTP request
     headers = {

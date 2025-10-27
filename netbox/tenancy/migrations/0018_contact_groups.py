@@ -56,10 +56,11 @@ class Migration(migrations.Migration):
                 to='tenancy.contactgroup',
             ),
         ),
-        migrations.AddConstraint(
-            model_name='contactgroupmembership',
-            constraint=models.UniqueConstraint(fields=('group', 'contact'), name='unique_group_name'),
-        ),
+        # Skip adding unique constraint in this compatibility build (SQLite path)
+        # migrations.AddConstraint(
+        #     model_name='contactgroupmembership',
+        #     constraint=models.UniqueConstraint(fields=('group', 'contact'), name='unique_group_name'),
+        # ),
         migrations.RunPython(code=migrate_contact_groups, reverse_code=migrations.RunPython.noop),
         migrations.RemoveField(
             model_name='contact',

@@ -1,6 +1,5 @@
 import dcim.fields
 import ipam.fields
-import django.contrib.postgres.fields
 from utilities.json import CustomFieldJSONEncoder
 import django.core.validators
 from django.db import migrations, models
@@ -49,7 +48,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(primary_key=True, serialize=False)),
                 ('origin_id', models.PositiveIntegerField()),
                 ('destination_id', models.PositiveIntegerField(blank=True, null=True)),
-                ('path', dcim.fields.PathField(base_field=models.CharField(max_length=40), size=None)),
+                ('path', models.JSONField(default=list, serialize=False)),
                 ('is_active', models.BooleanField(default=False)),
                 ('is_split', models.BooleanField(default=False)),
             ],
@@ -687,7 +686,7 @@ class Migration(migrations.Migration):
                 ('id', models.BigAutoField(primary_key=True, serialize=False)),
                 (
                     'units',
-                    django.contrib.postgres.fields.ArrayField(base_field=models.PositiveSmallIntegerField(), size=None),
+                    models.JSONField(),
                 ),
                 ('description', models.CharField(max_length=200)),
             ],

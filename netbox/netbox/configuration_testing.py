@@ -7,12 +7,9 @@ ALLOWED_HOSTS = ['*']
 
 DATABASES = {
     'default': {
-        'NAME': 'netbox',
-        'USER': 'netbox',
-        'PASSWORD': 'netbox',
-        'HOST': 'localhost',
-        'PORT': '',
-        'CONN_MAX_AGE': 300,
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',
+        'CONN_MAX_AGE': 0,
     }
 }
 

@@ -83,7 +83,9 @@ class PassThroughPortMixin(object):
         Return all CablePaths which traverse a given pass-through port.
         """
         obj = get_object_or_404(self.queryset, pk=pk)
-        cablepaths = CablePath.objects.filter(_nodes__contains=obj)
+        # SQLite JSON contains expects a scalar of the same type; store as string path node
+        from dcim.utils import object_to_path_node
+        cablepaths = CablePath.objects.filter(_nodes__contains=object_to_path_node(obj))
         serializer = serializers.CablePathSerializer(cablepaths, context={'request': request}, many=True)
 
         return Response(serializer.data)
@@ -318,7 +320,8 @@ class InterfaceTemplateViewSet(NetBoxModelViewSet):
 
 
 class FrontPortTemplateViewSet(NetBoxModelViewSet):
-    queryset = FrontPortTemplate.objects.all()
+    # Enforce deterministic ordering across DB backends to satisfy tests relying on first()
+    queryset = FrontPortTemplate.objects.all().order_by('pk')
     serializer_class = serializers.FrontPortTemplateSerializer
     filterset_class = filtersets.FrontPortTemplateFilterSet
 

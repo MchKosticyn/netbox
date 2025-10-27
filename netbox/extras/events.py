@@ -1,4 +1,5 @@
 import logging
+import uuid
 from collections import defaultdict
 
 from django.conf import settings
@@ -95,7 +96,7 @@ def process_event_rules(event_rules, object_type, event_type, data, username=Non
             continue
 
         # Compile event data
-        event_data = event_rule.action_data or {}
+        event_data = dict(event_rule.action_data or {})
         event_data.update(data)
 
         # Webhooks
@@ -116,6 +117,7 @@ def process_event_rules(event_rules, object_type, event_type, data, username=Non
                 "username": username,
                 "retry": get_rq_retry()
             }
+
             if snapshots:
                 params["snapshots"] = snapshots
             if request:

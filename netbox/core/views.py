@@ -559,27 +559,29 @@ class SystemView(UserPassesTestMixin, View):
 
     def get(self, request):
 
-        # System status
-        psql_version = db_name = db_size = None
+        # System status (SQLite-only)
+        db_engine = connection.vendor
+        db_version = None
+        db_name = settings.DATABASES.get('default', {}).get('NAME')
+        db_size = None
         try:
             with connection.cursor() as cursor:
-                cursor.execute("SELECT version()")
-                psql_version = cursor.fetchone()[0]
-                psql_version = psql_version.split('(')[0].strip()
-                cursor.execute("SELECT current_database()")
-                db_name = cursor.fetchone()[0]
-                cursor.execute(f"SELECT pg_size_pretty(pg_database_size('{db_name}'))")
-                db_size = cursor.fetchone()[0]
-        except (ProgrammingError, IndexError):
+                if db_engine == 'sqlite':
+                    cursor.execute("select sqlite_version()")
+                    db_version = cursor.fetchone()[0]
+                else:
+                    db_version = None
+        except Exception:
             pass
         stats = {
             'netbox_release': settings.RELEASE,
             'django_version': django_version,
             'python_version': platform.python_version(),
-            'postgresql_version': psql_version,
+            'database_engine': db_engine,
+            'database_version': db_version,
             'database_name': db_name,
             'database_size': db_size,
-            'rq_worker_count': Worker.count(get_connection('default')),
+            'rq_worker_count': 0,
         }
 
         # Django apps

@@ -1,4 +1,5 @@
-from django.db.backends.postgresql.psycopg_any import NumericRange
+from utilities.data import NumericRange
+# NumericRange is a compatibility shim for SQLite; see utilities/data.py TODO
 from django.test import TestCase
 from utilities.data import (
     check_ranges_overlap,

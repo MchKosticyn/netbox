@@ -1,6 +1,5 @@
 from django.conf import settings
 import django.contrib.auth.models
-import django.contrib.postgres.fields
 import django.core.validators
 from django.db import migrations, models
 import django.db.models.deletion
@@ -80,7 +79,7 @@ class Migration(migrations.Migration):
             name='UserConfig',
             fields=[
                 ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False)),
-                ('data', models.JSONField(default=dict)),
+                ('data', models.JSONField(default=dict, serialize=False)),
                 (
                     'user',
                     models.OneToOneField(
@@ -125,9 +124,9 @@ class Migration(migrations.Migration):
                 ('enabled', models.BooleanField(default=True)),
                 (
                     'actions',
-                    django.contrib.postgres.fields.ArrayField(base_field=models.CharField(max_length=30), size=None),
+                    models.JSONField(default=list, serialize=False),
                 ),
-                ('constraints', models.JSONField(blank=True, null=True)),
+                ('constraints', models.JSONField(blank=True, null=True, serialize=False)),
                 ('groups', models.ManyToManyField(blank=True, related_name='object_permissions', to='auth.Group')),
                 (
                     'object_types',

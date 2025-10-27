@@ -1,5 +1,4 @@
 from django.apps import apps
-from django.contrib.contenttypes.models import ContentType
 from django.db import router, transaction
 
 
@@ -17,6 +16,7 @@ def object_to_path_node(obj):
     Return a representation of an object suitable for inclusion in a CablePath path. Node representation is in the
     form <ContentType ID>:<Object ID>.
     """
+    from django.contrib.contenttypes.models import ContentType
     ct = ContentType.objects.get_for_model(obj)
     return compile_path_node(ct.pk, obj.pk)
 
@@ -27,6 +27,7 @@ def path_node_to_object(repr):
     exists, return None.
     """
     ct_id, object_id = decompile_path_node(repr)
+    from django.contrib.contenttypes.models import ContentType
     ct = ContentType.objects.get_for_id(ct_id)
     return ct.model_class().objects.filter(pk=object_id).first()
 
@@ -51,7 +52,8 @@ def rebuild_paths(terminations):
     from dcim.models import CablePath
 
     for obj in terminations:
-        cable_paths = CablePath.objects.filter(_nodes__contains=obj)
+        from dcim.utils import object_to_path_node as _otp
+        cable_paths = CablePath.objects.filter(_nodes__contains=_otp(obj))
 
         with transaction.atomic(using=router.db_for_write(CablePath)):
             for cp in cable_paths:

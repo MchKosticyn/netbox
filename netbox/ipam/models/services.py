@@ -1,5 +1,4 @@
 from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.postgres.fields import ArrayField
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
@@ -22,13 +21,9 @@ class ServiceBase(models.Model):
         max_length=50,
         choices=ServiceProtocolChoices
     )
-    ports = ArrayField(
-        base_field=models.PositiveIntegerField(
-            validators=[
-                MinValueValidator(SERVICE_PORT_MIN),
-                MaxValueValidator(SERVICE_PORT_MAX)
-            ]
-        ),
+    # SQLite-only: store ports as JSON list; Postgres ArrayField removed permanently
+    ports = models.JSONField(
+        default=list,
         verbose_name=_('port numbers')
     )
 

@@ -24,7 +24,8 @@ class Migration(migrations.Migration):
                 ('custom_field_data', models.JSONField(
                     blank=True,
                     default=dict,
-                    encoder=utilities.json.CustomFieldJSONEncoder
+                    encoder=utilities.json.CustomFieldJSONEncoder,
+                    serialize=False
                 )),
                 ('name', models.CharField(max_length=100, unique=True)),
                 ('slug', models.SlugField(max_length=100, unique=True)),
@@ -46,7 +47,7 @@ class Migration(migrations.Migration):
                 ('last_updated', models.DateTimeField(auto_now=True, null=True)),
                 (
                     'custom_field_data',
-                    models.JSONField(blank=True, default=dict, encoder=utilities.json.CustomFieldJSONEncoder),
+                    models.JSONField(blank=True, default=dict, encoder=utilities.json.CustomFieldJSONEncoder, serialize=False),
                 ),
                 ('description', models.CharField(blank=True, max_length=200)),
                 ('comments', models.TextField(blank=True)),
@@ -104,7 +105,7 @@ class Migration(migrations.Migration):
                 ('last_updated', models.DateTimeField(auto_now=True, null=True)),
                 (
                     'custom_field_data',
-                    models.JSONField(blank=True, default=dict, encoder=utilities.json.CustomFieldJSONEncoder),
+                    models.JSONField(blank=True, default=dict, encoder=utilities.json.CustomFieldJSONEncoder, serialize=False),
                 ),
                 ('role', models.CharField(default='peer', max_length=50)),
                 ('description', models.CharField(blank=True, max_length=200)),

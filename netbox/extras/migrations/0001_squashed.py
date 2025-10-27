@@ -1,6 +1,6 @@
 from django.conf import settings
-import django.contrib.postgres.fields
 from django.db import migrations, models
+# Postgres-specific constructs removed for SQLite compatibility
 import django.db.models.deletion
 import extras.models.customfields
 import extras.utils
@@ -49,7 +49,7 @@ class Migration(migrations.Migration):
                 ('weight', models.PositiveSmallIntegerField(default=1000)),
                 ('description', models.CharField(blank=True, max_length=200)),
                 ('is_active', models.BooleanField(default=True)),
-                ('data', models.JSONField()),
+                ('data', models.JSONField(serialize=False)),
             ],
             options={
                 'ordering': ['weight', 'name'],
@@ -291,7 +291,7 @@ class Migration(migrations.Migration):
                 ('description', models.CharField(blank=True, max_length=200)),
                 ('required', models.BooleanField(default=False)),
                 ('filter_logic', models.CharField(default='loose', max_length=50)),
-                ('default', models.JSONField(blank=True, null=True)),
+                ('default', models.JSONField(blank=True, null=True, serialize=False)),
                 ('weight', models.PositiveSmallIntegerField(default=100)),
                 ('validation_minimum', models.PositiveIntegerField(blank=True, null=True)),
                 ('validation_maximum', models.PositiveIntegerField(blank=True, null=True)),
@@ -301,9 +301,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     'choices',
-                    django.contrib.postgres.fields.ArrayField(
-                        base_field=models.CharField(max_length=100), blank=True, null=True, size=None
-                    ),
+                    models.JSONField(blank=True, null=True, default=list, serialize=False),
                 ),
                 ('content_types', models.ManyToManyField(related_name='custom_fields', to='contenttypes.ContentType')),
             ],

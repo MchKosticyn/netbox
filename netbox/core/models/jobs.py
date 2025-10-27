@@ -6,11 +6,12 @@ from functools import partial
 import django_rq
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
-from django.contrib.postgres.fields import ArrayField
 from django.core.exceptions import ValidationError
 from django.core.serializers.json import DjangoJSONEncoder
 from django.core.validators import MinValueValidator
 from django.db import models, transaction
+# Postgres ArrayField is not available under SQLite; use JSONField as project default
+ArrayField = models.JSONField
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext as _
@@ -112,12 +113,10 @@ class Job(models.Model):
         verbose_name=_('job ID'),
         unique=True
     )
-    log_entries = ArrayField(
+    log_entries = models.JSONField(
         verbose_name=_('log entries'),
-        base_field=models.JSONField(
-            encoder=DjangoJSONEncoder,
-            decoder=JobLogDecoder,
-        ),
+        encoder=DjangoJSONEncoder,
+        null=True,
         blank=True,
         default=list,
     )

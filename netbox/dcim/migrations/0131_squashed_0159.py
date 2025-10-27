@@ -420,25 +420,8 @@ class Migration(migrations.Migration):
             model_name='site',
             name='contact_phone',
         ),
-        migrations.RunSQL(
-            sql="""DO $$
-            DECLARE idx record;
-            BEGIN
-                FOR idx IN
-                    SELECT indexname AS old_name, replace(indexname, 'module', 'inventoryitem') AS new_name
-                    FROM pg_indexes
-                    WHERE schemaname = 'public' AND
-                          tablename = 'dcim_inventoryitem' AND
-                          indexname LIKE 'dcim_module_%'
-                LOOP
-                    EXECUTE format(
-                        'ALTER INDEX %I RENAME TO %I;',
-                        idx.old_name,
-                        idx.new_name
-                    );
-                END LOOP;
-            END$$;""",
-        ),
+        # PostgreSQL-specific index rename; skip on non-Postgres DBs
+        migrations.RunPython(code=migrations.RunPython.noop),
         migrations.AlterModelOptions(
             name='consoleporttemplate',
             options={'ordering': ('device_type', 'module_type', '_name')},
@@ -1496,7 +1479,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='cablepath',
             name='path',
-            field=models.JSONField(default=list),
+            field=models.JSONField(default=list, serialize=False),
         ),
         migrations.AddField(
             model_name='cablepath',

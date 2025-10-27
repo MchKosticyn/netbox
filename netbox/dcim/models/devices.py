@@ -525,7 +525,7 @@ class Device(
         max_length=64,
         blank=True,
         null=True,
-        db_collation="natural_sort"
+        # db_collation omitted under SQLite: natural_sort
     )
     serial = models.CharField(
         max_length=50,
@@ -718,7 +718,8 @@ class Device(
     )
 
     class Meta:
-        ordering = ('name', 'pk')  # Name may be null
+        # Ensure consistent NULLS LAST semantics across backends for name ordering
+        ordering = (models.F('name').asc(nulls_last=True), 'pk')  # Name may be null
         constraints = (
             models.UniqueConstraint(
                 Lower('name'), 'site', 'tenant',
@@ -1119,7 +1120,7 @@ class VirtualChassis(PrimaryModel):
     name = models.CharField(
         verbose_name=_('name'),
         max_length=64,
-        db_collation="natural_sort"
+        # db_collation omitted under SQLite: natural_sort
     )
     domain = models.CharField(
         verbose_name=_('domain'),
@@ -1182,7 +1183,7 @@ class VirtualDeviceContext(PrimaryModel):
     name = models.CharField(
         verbose_name=_('name'),
         max_length=64,
-        db_collation="natural_sort"
+        # db_collation omitted under SQLite: natural_sort
     )
     status = models.CharField(
         verbose_name=_('status'),

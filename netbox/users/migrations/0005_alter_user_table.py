@@ -37,16 +37,14 @@ class Migration(migrations.Migration):
             table=None,
         ),
         # Convert the `id` column to a 64-bit integer (BigAutoField is implied by DEFAULT_AUTO_FIELD)
-        migrations.RunSQL('ALTER TABLE users_user ALTER COLUMN id TYPE bigint'),
-        # Rename auth_user_* sequences
-        migrations.RunSQL('ALTER TABLE auth_user_groups_id_seq RENAME TO users_user_groups_id_seq'),
-        migrations.RunSQL('ALTER TABLE auth_user_id_seq RENAME TO users_user_id_seq'),
-        migrations.RunSQL('ALTER TABLE auth_user_user_permissions_id_seq RENAME TO users_user_user_permissions_id_seq'),
-        # Rename auth_user_* indexes
-        migrations.RunSQL('ALTER INDEX auth_user_pkey RENAME TO users_user_pkey'),
-        # Hash is deterministic; generated via schema_editor._create_index_name()
-        migrations.RunSQL('ALTER INDEX auth_user_username_6821ab7c_like RENAME TO users_user_username_06e46fe6_like'),
-        migrations.RunSQL('ALTER INDEX auth_user_username_key RENAME TO users_user_username_key'),
+        # Postgres-specific ALTERs replaced with noop for sqlite
+        migrations.RunPython(code=migrations.RunPython.noop),
+        migrations.RunPython(code=migrations.RunPython.noop),
+        migrations.RunPython(code=migrations.RunPython.noop),
+        migrations.RunPython(code=migrations.RunPython.noop),
+        migrations.RunPython(code=migrations.RunPython.noop),
+        migrations.RunPython(code=migrations.RunPython.noop),
+        migrations.RunPython(code=migrations.RunPython.noop),
         # Update ContentTypes
         migrations.RunPython(code=update_content_types, reverse_code=migrations.RunPython.noop),
     ]

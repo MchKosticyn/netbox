@@ -6,7 +6,8 @@ class NetFieldDecoratorMixin(object):
     def process_lhs(self, qn, connection, lhs=None):
         lhs = lhs or self.lhs
         lhs_string, lhs_params = qn.compile(lhs)
-        lhs_string = 'TEXT(%s)' % lhs_string
+        # SQLite: no TEXT() function; use standard CAST(... AS TEXT) which also works on PostgreSQL
+        lhs_string = 'CAST(%s AS TEXT)' % lhs_string
         return lhs_string, lhs_params
 
 
@@ -53,7 +54,7 @@ class NetContainsOrEquals(Lookup):
         lhs, lhs_params = self.process_lhs(qn, connection)
         rhs, rhs_params = self.process_rhs(qn, connection)
         params = lhs_params + rhs_params
-        return '%s >>= %s' % (lhs, rhs), params
+        return 'INET_CONTAINS_OR_EQUALS(%s, %s)' % (lhs, rhs), params
 
 
 class NetContains(Lookup):
@@ -63,7 +64,7 @@ class NetContains(Lookup):
         lhs, lhs_params = self.process_lhs(qn, connection)
         rhs, rhs_params = self.process_rhs(qn, connection)
         params = lhs_params + rhs_params
-        return '%s >> %s' % (lhs, rhs), params
+        return 'INET_CONTAINS(%s, %s)' % (lhs, rhs), params
 
 
 class NetContained(Lookup):
@@ -73,7 +74,7 @@ class NetContained(Lookup):
         lhs, lhs_params = self.process_lhs(qn, connection)
         rhs, rhs_params = self.process_rhs(qn, connection)
         params = lhs_params + rhs_params
-        return '%s << %s' % (lhs, rhs), params
+        return 'INET_CONTAINED(%s, %s)' % (lhs, rhs), params
 
 
 class NetContainedOrEqual(Lookup):
@@ -83,7 +84,7 @@ class NetContainedOrEqual(Lookup):
         lhs, lhs_params = self.process_lhs(qn, connection)
         rhs, rhs_params = self.process_rhs(qn, connection)
         params = lhs_params + rhs_params
-        return '%s <<= %s' % (lhs, rhs), params
+        return 'INET_CONTAINED(%s, %s) OR (%s = %s)' % (lhs, rhs, lhs, rhs), params + params
 
 
 class NetHost(Lookup):
@@ -92,12 +93,10 @@ class NetHost(Lookup):
     def as_sql(self, qn, connection):
         lhs, lhs_params = self.process_lhs(qn, connection)
         rhs, rhs_params = self.process_rhs(qn, connection)
-        # Query parameters are automatically converted to IPNetwork objects, which are then turned to strings. We need
-        # to omit the mask portion of the object's string representation to match PostgreSQL's HOST() function.
         if rhs_params:
             rhs_params[0] = rhs_params[0].split('/')[0]
         params = lhs_params + rhs_params
-        return 'HOST(%s) = %s' % (lhs, rhs), params
+        return 'INET_HOST(%s) = %s' % (lhs, rhs), params
 
 
 class NetIn(Lookup):
@@ -142,8 +141,7 @@ class NetIn(Lookup):
 
 class NetHostContained(Lookup):
     """
-    Check for the host portion of an IP address without regard to its mask. This allows us to find e.g. 192.0.2.1/24
-    when specifying a parent prefix of 192.0.2.0/26.
+    Check for the host portion of an IP address without regard to its mask.
     """
     lookup_name = 'net_host_contained'
 
@@ -151,7 +149,7 @@ class NetHostContained(Lookup):
         lhs, lhs_params = self.process_lhs(qn, connection)
         rhs, rhs_params = self.process_rhs(qn, connection)
         params = lhs_params + rhs_params
-        return 'CAST(HOST(%s) AS INET) <<= %s' % (lhs, rhs), params
+        return 'INET_CONTAINED(INET_HOST(%s), %s)' % (lhs, rhs), params
 
 
 class NetFamily(Transform):
@@ -180,3 +178,19 @@ class Host(Transform):
 class Inet(Transform):
     function = 'INET'
     lookup_name = 'inet'
+
+
+# Ensure comparisons coerce RHS via INET() for correct lexical ordering of keys
+class InetGreaterThanOrEqual(lookups.GreaterThanOrEqual):
+    def get_rhs_op(self, connection, rhs):
+        return '>= INET(%s)' % rhs
+
+
+class InetLessThanOrEqual(lookups.LessThanOrEqual):
+    def get_rhs_op(self, connection, rhs):
+        return '<= INET(%s)' % rhs
+
+
+# Register custom comparison lookups on the Inet transform
+Inet.register_lookup(InetGreaterThanOrEqual)
+Inet.register_lookup(InetLessThanOrEqual)

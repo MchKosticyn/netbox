@@ -133,7 +133,8 @@ def update_connected_endpoints(instance, created, raw=False, **kwargs):
     # Update status of CablePaths if Cable status has been changed
     elif instance.status != instance._orig_status:
         if instance.status != LinkStatusChoices.STATUS_CONNECTED:
-            CablePath.objects.filter(_nodes__contains=instance).update(is_active=False)
+            from dcim.utils import object_to_path_node
+            CablePath.objects.filter(_nodes__contains=object_to_path_node(instance)).update(is_active=False)
         else:
             rebuild_paths([instance])
 
@@ -143,7 +144,8 @@ def retrace_cable_paths(instance, **kwargs):
     """
     When a Cable is deleted, check for and update its connected endpoints
     """
-    for cablepath in CablePath.objects.filter(_nodes__contains=instance):
+    from dcim.utils import object_to_path_node
+    for cablepath in CablePath.objects.filter(_nodes__contains=object_to_path_node(instance)):
         cablepath.retrace()
 
 
@@ -155,7 +157,8 @@ def nullify_connected_endpoints(instance, **kwargs):
     model = instance.termination_type.model_class()
     model.objects.filter(pk=instance.termination_id).update(cable=None, cable_end='')
 
-    for cablepath in CablePath.objects.filter(_nodes__contains=instance.cable):
+    from dcim.utils import object_to_path_node
+    for cablepath in CablePath.objects.filter(_nodes__contains=object_to_path_node(instance.cable)):
         # Remove the deleted CableTermination if it's one of the path's originating nodes
         if instance.termination in cablepath.origins:
             cablepath.origins.remove(instance.termination)
@@ -169,7 +172,8 @@ def extend_rearport_cable_paths(instance, created, raw, **kwargs):
     """
     if created and not raw:
         rearport = instance.rear_port
-        for cablepath in CablePath.objects.filter(_nodes__contains=rearport):
+        from dcim.utils import object_to_path_node
+        for cablepath in CablePath.objects.filter(_nodes__contains=object_to_path_node(rearport)):
             cablepath.retrace()
 
 

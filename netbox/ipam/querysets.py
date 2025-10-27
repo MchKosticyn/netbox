@@ -1,4 +1,9 @@
-from django.contrib.contenttypes.models import ContentType
+try:
+    from django.contrib.contenttypes.models import ContentType
+except Exception:
+    ContentType = None
+# TODO: Use apps.get_model('contenttypes', 'ContentType') where necessary at runtime
+
 from django.db.models import Count, F, OuterRef, Q, Subquery, Value
 from django.db.models.expressions import RawSQL
 from django.db.models.functions import Round
@@ -36,24 +41,37 @@ class PrefixQuerySet(RestrictedQuerySet):
 
     def annotate_hierarchy(self):
         """
-        Annotate the depth and number of child prefixes for each Prefix. Cast null VRF values to zero for
-        comparison. (NULL != NULL).
+        Annotate hierarchy depth and children count using SQLite-compatible UDF-backed lookups.
+        - hierarchy_depth: number of parent prefixes (same VRF) that strictly contain this prefix
+        - hierarchy_children: number of child prefixes (same VRF) strictly contained by this prefix
         """
-        return self.annotate(
-            hierarchy_depth=RawSQL(
-                'SELECT COUNT(DISTINCT U0."prefix") AS "c" '
-                'FROM "ipam_prefix" U0 '
-                'WHERE (U0."prefix" >> "ipam_prefix"."prefix" '
-                'AND COALESCE(U0."vrf_id", 0) = COALESCE("ipam_prefix"."vrf_id", 0))',
-                ()
-            ),
-            hierarchy_children=RawSQL(
-                'SELECT COUNT(U1."prefix") AS "c" '
-                'FROM "ipam_prefix" U1 '
-                'WHERE (U1."prefix" << "ipam_prefix"."prefix" '
-                'AND COALESCE(U1."vrf_id", 0) = COALESCE("ipam_prefix"."vrf_id", 0))',
-                ()
+        from django.db.models import IntegerField, Value
+        from django.db.models.functions import Coalesce
+        from .models import Prefix as PrefixModel
+
+        parents = (
+            PrefixModel.objects.filter(
+                vrf=OuterRef('vrf'),
+                prefix__net_contains=OuterRef('prefix'),
             )
+            .order_by()
+            .values('vrf')
+            .annotate(c=Count('*'))
+            .values('c')
+        )
+        children = (
+            PrefixModel.objects.filter(
+                vrf=OuterRef('vrf'),
+                prefix__net_contained=OuterRef('prefix'),
+            )
+            .order_by()
+            .values('vrf')
+            .annotate(c=Count('*'))
+            .values('c')
+        )
+        return self.annotate(
+            hierarchy_depth=Coalesce(Subquery(parents, output_field=IntegerField()), Value(0, output_field=IntegerField())),
+            hierarchy_children=Coalesce(Subquery(children, output_field=IntegerField()), Value(0, output_field=IntegerField())),
         )
 
 

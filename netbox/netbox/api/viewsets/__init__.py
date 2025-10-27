@@ -2,9 +2,31 @@ import logging
 from functools import cached_property
 
 from django.core.exceptions import ObjectDoesNotExist, PermissionDenied
-from django.db import router, transaction
+from django.db import router, transaction, connection
 from django.db.models import ProtectedError, RestrictedError
-from django_pglocks import advisory_lock
+# SQLite compatibility: wrap django_pglocks.advisory_lock to be a no-op on SQLite
+try:
+    from django_pglocks import advisory_lock as _pg_advisory_lock
+except Exception:  # pragma: no cover
+    _pg_advisory_lock = None
+
+class _NoopLock:
+    def __init__(self, key):
+        self.key = key
+    def __enter__(self):
+        return self
+    def __exit__(self, exc_type, exc, tb):
+        return False
+    def __call__(self, func):
+        def wrapper(*args, **kwargs):
+            return func(*args, **kwargs)
+        return wrapper
+
+def advisory_lock(key):
+    if connection.vendor == 'sqlite' or _pg_advisory_lock is None:
+        return _NoopLock(key)
+    return _pg_advisory_lock(key)
+
 from netbox.constants import ADVISORY_LOCK_KEYS
 from rest_framework import mixins as drf_mixins
 from rest_framework import status

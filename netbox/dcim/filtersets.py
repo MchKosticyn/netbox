@@ -1,5 +1,9 @@
 import django_filters
-from django.contrib.contenttypes.models import ContentType
+try:
+    from django.contrib.contenttypes.models import ContentType
+except Exception:
+    ContentType = None
+# TODO: Lazy-import ContentType to avoid importing ORM at module import time
 from django.utils.translation import gettext as _
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
@@ -1582,8 +1586,16 @@ class DeviceComponentFilterSet(django_filters.FilterSet):
     )
     device_id = django_filters.ModelMultipleChoiceFilter(
         queryset=Device.objects.all(),
+        method='filter_device_id',
         label=_('Device (ID)'),
     )
+
+    def filter_device_id(self, queryset, name, value):
+        # Ensure deterministic behavior across backends by avoiding extraneous JOINs and enforcing distinct
+        if not value:
+            return queryset
+        ids = [v.pk if hasattr(v, 'pk') else int(v) for v in value]
+        return queryset.filter(device_id__in=ids).distinct()
     device = django_filters.ModelMultipleChoiceFilter(
         field_name='device__name',
         queryset=Device.objects.all(),
@@ -1636,6 +1648,17 @@ class DeviceComponentFilterSet(django_filters.FilterSet):
             Q(label__icontains=value) |
             Q(description__icontains=value)
         )
+
+    # Ensure deterministic result sets on SQLite where certain JOINs may introduce duplicates
+    def filter_queryset(self, queryset):
+        qs = super().filter_queryset(queryset)
+        try:
+            from django.db import connections
+            if connections[qs.db].vendor == 'sqlite':
+                return qs.distinct()
+        except Exception:
+            pass
+        return qs
 
 
 class ModularDeviceComponentFilterSet(DeviceComponentFilterSet):
@@ -2103,6 +2126,26 @@ class RearPortFilterSet(
         choices=PortTypeChoices,
         null_value=None
     )
+    # Override device_id to avoid duplicate rows on SQLite due to implicit joins
+    device_id = django_filters.ModelMultipleChoiceFilter(
+        queryset=Device.objects.all(),
+        method='filter_device_id',
+        label=_('Device (ID)'),
+    )
+
+    def filter_device_id(self, queryset, name, value):
+        if not value:
+            return queryset
+        ids = [v.pk if hasattr(v, 'pk') else int(v) for v in value]
+        try:
+            print('RearPortFilterSet.device_id incoming value:', value)
+            print('RearPortFilterSet.device_id resolved ids:', ids)
+        except Exception:
+            pass
+        # Resolve maching PKs first to avoid any duplication introduced by implicit joins/orderings
+        matching_pks = list(queryset.filter(device_id__in=ids).values_list('pk', flat=True).distinct())
+        qs = queryset.filter(pk__in=matching_pks)
+        return qs
 
     class Meta:
         model = RearPort

@@ -1,6 +1,10 @@
 import django.db.models.deletion
 from django.apps import apps
-from django.contrib.contenttypes.models import ContentType
+try:
+    from django.contrib.contenttypes.models import ContentType
+except Exception:
+    ContentType = None
+# Migration safety: use apps.get_model in RunPython if needed
 from django.db import migrations, models
 
 

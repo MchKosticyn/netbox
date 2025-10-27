@@ -79,7 +79,8 @@ class VMInterfaceViewSet(NetBoxModelViewSet):
 
     def get_bulk_destroy_queryset(self):
         # Ensure child interfaces are deleted prior to their parents
-        return self.get_queryset().order_by('virtual_machine', 'parent', CollateAsChar('_name'))
+        # SQLite note: NULLs sort first in ASC; use '-parent' so children (non-NULL) come before parents (NULL)
+        return self.get_queryset().order_by('virtual_machine', '-parent', CollateAsChar('_name'))
 
 
 class VirtualDiskViewSet(NetBoxModelViewSet):

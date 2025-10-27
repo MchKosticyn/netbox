@@ -233,9 +233,15 @@ class MaintenanceModeMiddleware:
         Args:
             allow_write (bool): If True, write operations will be permitted.
         """
-        with connection.cursor() as cursor:
-            mode = 'READ WRITE' if allow_write else 'READ ONLY'
-            cursor.execute(f'SET SESSION CHARACTERISTICS AS TRANSACTION {mode};')
+        # SQLite does not support per-session transaction characteristic changes; no-op
+        try:
+            with connection.cursor() as cursor:
+                if connection.vendor == 'sqlite':
+                    return
+                mode = 'READ WRITE' if allow_write else 'READ ONLY'
+                cursor.execute(f"SET SESSION CHARACTERISTICS AS TRANSACTION {mode};")
+        except Exception:
+            pass
 
     def process_exception(self, request, exception):
         """

@@ -4,10 +4,13 @@ from pathlib import Path
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
-from django.contrib.postgres.fields import ArrayField
 from django.core.validators import ValidationError
 from django.db import models
 from django.urls import reverse
+
+# Pure SQLite: no Postgres ArrayField
+PostgresArrayField = None
+_HAS_PG_ARRAY = False
 from django.utils import timezone
 from django.utils.html import escape
 from django.utils.safestring import mark_safe
@@ -66,9 +69,10 @@ class EventRule(CustomFieldsMixin, ExportTemplatesMixin, TagsMixin, ChangeLogged
         max_length=200,
         blank=True
     )
-    event_types = ArrayField(
-        base_field=models.CharField(max_length=50, choices=get_event_type_choices),
-        help_text=_("The types of event which will trigger this rule.")
+    # SQLite-only: store as JSON list
+    event_types = models.JSONField(
+        default=list,
+        help_text=_("The types of event which will trigger this rule."),
     )
     enabled = models.BooleanField(
         verbose_name=_('enabled'),
@@ -577,14 +581,18 @@ class TableConfig(CloningMixin, ChangeLoggedModel):
         verbose_name=_('shared'),
         default=True
     )
-    columns = ArrayField(
-        base_field=models.CharField(max_length=100),
-    )
-    ordering = ArrayField(
-        base_field=models.CharField(max_length=100),
-        blank=True,
-        null=True,
-    )
+    if _HAS_PG_ARRAY:
+        columns = PostgresArrayField(
+            base_field=models.CharField(max_length=100),
+        )
+        ordering = PostgresArrayField(
+            base_field=models.CharField(max_length=100),
+            blank=True,
+            null=True,
+        )
+    else:
+        columns = models.JSONField(default=list)
+        ordering = models.JSONField(blank=True, null=True)
 
     clone_fields = ('object_type', 'table', 'enabled', 'shared', 'columns', 'ordering')
 

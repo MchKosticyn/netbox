@@ -1,6 +1,6 @@
 from django import forms
-from django.contrib.postgres.forms import SimpleArrayField
 from django.utils.translation import gettext_lazy as _
+# Note: Avoid importing utilities.forms (SimpleArrayField) here to prevent early imports during settings load.
 
 
 class ConfigParam:
@@ -126,8 +126,10 @@ PARAMS = (
             'xmpp',
         ),
         description=_("Permitted schemes for URLs in user-provided content"),
-        field=SimpleArrayField,
-        field_kwargs={'base_field': forms.CharField()}
+        # Use a simple CharField here to avoid importing utilities.forms at settings import time.
+        # Expected format: comma-separated list of schemes.
+        field=forms.CharField,
+        field_kwargs={'help_text': _('Comma-separated list of URL schemes')}
     ),
 
     # Pagination
