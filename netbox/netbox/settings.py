@@ -353,14 +353,9 @@ for path in PROXY_ROUTERS:
 # Database
 #
 
-# Force usage of in-memory SQLite for all environments (tests and runtime)
-# This simplifies local testing and avoids DB-specific SQL syntax issues.
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': ':memory:',
-    }
-}
+# Use configuration from configuration.py
+# For tests, manage.py will set NETBOX_CONFIGURATION to netbox.configuration_testing
+# which uses in-memory SQLite
 
 
 #

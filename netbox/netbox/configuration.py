@@ -14,9 +14,8 @@ ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '0.0.0.0']
 #   https://docs.djangoproject.com/en/stable/ref/settings/#databases
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',  # Use SQLite in-memory for this environment
-        'NAME': ':memory:',                      # In-memory SQLite database
-        # Note: NetBox expects PostgreSQL; using SQLite in-memory may cause failures.
+        'ENGINE': 'django.db.backends.sqlite3',  # Use SQLite for this environment
+        'NAME': 'netbox.db',                     # SQLite database file
         'CONN_MAX_AGE': 0,
     }
 }
